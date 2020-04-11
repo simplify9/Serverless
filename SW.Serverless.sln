@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29521.150
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8767787F-0B72-40D8-B7E2-6E060EA64BE3}"
+	ProjectSection(SolutionItems) = preProject
+		azure-pipelines.yml = azure-pipelines.yml
+		nuget.config = nuget.config
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SW.Serverless.SampleWeb", "SW.Serverless.SampleWeb\SW.Serverless.SampleWeb.csproj", "{B96DA935-5414-4518-8FD9-A52E8543AE92}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SW.Serverless", "SW.Serverless\SW.Serverless.csproj", "{A64A8B2F-CE91-4BFB-B792-3EFA6BEB7B14}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SW.Serverless.Sdk", "SW.Serverless.Sdk\SW.Serverless.Sdk.csproj", "{A9B5B0EB-441D-4942-B4F6-C972278AD375}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SampleAdapters", "SampleAdapters", "{E6A6C529-51DD-4DDE-97C5-4D264F8A905D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SW.Serverless.SampleAdapter1", "SW.Serverless.SampleAdapter1\SW.Serverless.SampleAdapter1.csproj", "{42A3152F-A5E6-4701-BC35-957003240D92}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B96DA935-5414-4518-8FD9-A52E8543AE92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B96DA935-5414-4518-8FD9-A52E8543AE92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B96DA935-5414-4518-8FD9-A52E8543AE92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B96DA935-5414-4518-8FD9-A52E8543AE92}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A64A8B2F-CE91-4BFB-B792-3EFA6BEB7B14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A64A8B2F-CE91-4BFB-B792-3EFA6BEB7B14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A64A8B2F-CE91-4BFB-B792-3EFA6BEB7B14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A64A8B2F-CE91-4BFB-B792-3EFA6BEB7B14}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9B5B0EB-441D-4942-B4F6-C972278AD375}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9B5B0EB-441D-4942-B4F6-C972278AD375}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9B5B0EB-441D-4942-B4F6-C972278AD375}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9B5B0EB-441D-4942-B4F6-C972278AD375}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42A3152F-A5E6-4701-BC35-957003240D92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42A3152F-A5E6-4701-BC35-957003240D92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42A3152F-A5E6-4701-BC35-957003240D92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42A3152F-A5E6-4701-BC35-957003240D92}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{42A3152F-A5E6-4701-BC35-957003240D92} = {E6A6C529-51DD-4DDE-97C5-4D264F8A905D}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F751DEEC-449B-43AE-A183-7A0274E66317}
+	EndGlobalSection
+EndGlobal

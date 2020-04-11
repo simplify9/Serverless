@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <PackageId>SimplyWorks.Serverless.Sdk</PackageId>
+    <Authors>SimplyWorks</Authors>
+    <Product>SimplyWorks.Serverless.Sdk</Product>    
+  </PropertyGroup>
+
+</Project>
