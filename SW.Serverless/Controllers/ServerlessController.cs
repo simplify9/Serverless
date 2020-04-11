@@ -37,7 +37,7 @@ namespace SW.Serverless.Controllers
         }
 
 
-        [HttpGet("_admin/update/{adapterId}")]
+        [HttpPut("admin/adapters/{adapterId}")]
         public async Task<IActionResult> Install(string adapterId, [FromBody]InstallAdapter installAdapter)
         {
 
