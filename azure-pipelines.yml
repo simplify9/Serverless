@@ -1,0 +1,91 @@
+name: $(Year:yyyy).$(Month).$(DayOfMonth)$(Rev:.r)
+
+trigger:
+- master
+
+resources:
+- repo: self
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  # Container registry service connection established during pipeline creation
+  dockerRegistryServiceConnection: 'simplyworksacr'
+  imageRepository: 'serverless'
+  containerRegistry: 'simplyworks.azurecr.io'
+  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
+  tag: '$(Build.BuildId)'
+  k8sServiceConnection: 'k8s-s9'
+
+    
+stages:
+- stage: Build
+  displayName: Build and push image
+  jobs:
+  - job: build
+    displayName: build and push image
+    steps:
+      - task: VersionDotNetCoreAssemblies@2
+        inputs:
+          Path: '$(Build.SourcesDirectory)'
+          VersionNumber: '$(Build.BuildNumber)'
+          Injectversion: False
+          VersionRegex: '\d+\.\d+\.\d+\.\d+'
+          FilenamePattern: '.csproj'
+          SDKNames: 'Microsoft.NET.Sdk'
+          OutputVersion: 'OutputedVersion'
+
+      - task: Docker@2
+        displayName: Build and push an image to container registry
+        condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+        inputs:
+          command: buildAndPush
+          repository: $(imageRepository)
+          dockerfile: $(dockerfilePath)
+          containerRegistry: $(dockerRegistryServiceConnection)
+          tags: |
+            $(tag)
+            latest
+
+      - task: PublishPipelineArtifact@1
+        displayName: "Publish artifacts"
+        inputs:
+          path: $(System.DefaultWorkingDirectory)/charts
+          artifact: charts
+
+
+- stage: Dev
+  displayName: Deploy to dev
+  jobs:
+    - deployment: Dev
+      displayName: Deploy to dev
+      environment: 'development'
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - task: DownloadPipelineArtifact@2
+                displayName: Downloadin artifacts
+                inputs:
+                  artifact: charts
+
+              - task: HelmInstaller@0
+                displayName: 'Install Helm latest'
+                inputs:
+                  helmVersion: 3.1.0
+                  checkLatestHelmVersion: false
+                  installKubectl: true
+
+              - task: HelmDeploy@0
+                displayName: 'helm upgrade'
+                inputs:
+                  connectionType: 'Kubernetes Service Connection'
+                  kubernetesServiceConnection: '$(k8sServiceConnection)'
+                  command: upgrade
+                  chartType: FilePath
+                  chartPath: $(Pipeline.Workspace)/$(imageRepository)
+                  releaseName: '$(Environment.Name)-$(imageRepository)'
+                  overrideValues: 'image.tag=$(tag)'
+                  valueFile: '$(Pipeline.Workspace)/$(imageRepository)/$(Environment.Name)-values.yaml'
+
