@@ -11,9 +11,5 @@
     <ProjectReference Include="..\SW.Serverless\SW.Serverless.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="adapters\" />
-  </ItemGroup>
-
 
 </Project>
