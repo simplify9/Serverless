@@ -76,18 +76,18 @@ namespace SW.Serverless
         async public Task<string> InvokeAsync(string command, string input = null)
         {
 
-            if (process.HasExited)
-                throw new Exception("process terminated.");
+            if (!processStarted || process.HasExited)
+                throw new Exception("Process not started or terminated.");
 
             taskCompletionSource = new TaskCompletionSource<string>();
-
-            await process.StandardInput.WriteLineAsync($"{Constants.Delimiter}{command}{Constants.Delimiter}{input}{Constants.Delimiter}".Replace("\n", Constants.NewLineIdentifier));
 
             invocationTimeoutTimer = new Timer(
                 callback: InvocationTimeoutTimerCallback,
                 state: null,
                 dueTime: TimeSpan.FromSeconds(30),
                 period: Timeout.InfiniteTimeSpan);
+
+            await process.StandardInput.WriteLineAsync($"{Constants.Delimiter}{command}{Constants.Delimiter}{input}{Constants.Delimiter}".Replace("\n", Constants.NewLineIdentifier));
 
             return await taskCompletionSource.Task;
         }
