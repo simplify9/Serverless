@@ -4,9 +4,9 @@ using System.Text;
 
 namespace SW.Serverless
 {
-    public class InstallAdapter
+    class AdapterMetadata
     {
-        public string Id { get; set; }
+        public string Hash { get; set; }
         public string EntryAssembly { get; set; }
     }
 }

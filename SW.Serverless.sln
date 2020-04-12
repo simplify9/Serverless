@@ -13,11 +13,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SW.Serverless.SampleWeb", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SW.Serverless", "SW.Serverless\SW.Serverless.csproj", "{A64A8B2F-CE91-4BFB-B792-3EFA6BEB7B14}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SW.Serverless.Sdk", "SW.Serverless.Sdk\SW.Serverless.Sdk.csproj", "{A9B5B0EB-441D-4942-B4F6-C972278AD375}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SW.Serverless.Sdk", "SW.Serverless.Sdk\SW.Serverless.Sdk.csproj", "{A9B5B0EB-441D-4942-B4F6-C972278AD375}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SampleAdapters", "SampleAdapters", "{E6A6C529-51DD-4DDE-97C5-4D264F8A905D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SW.Serverless.SampleAdapter1", "SW.Serverless.SampleAdapter1\SW.Serverless.SampleAdapter1.csproj", "{42A3152F-A5E6-4701-BC35-957003240D92}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SW.Serverless.SampleAdapter1", "SW.Serverless.SampleAdapter1\SW.Serverless.SampleAdapter1.csproj", "{42A3152F-A5E6-4701-BC35-957003240D92}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SW.Serverless.Installer", "SW.Serverless.Installer\SW.Serverless.Installer.csproj", "{3479F6FE-DEE6-4F24-89DF-23771EEFCFE1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +43,10 @@ Global
 		{42A3152F-A5E6-4701-BC35-957003240D92}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{42A3152F-A5E6-4701-BC35-957003240D92}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42A3152F-A5E6-4701-BC35-957003240D92}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3479F6FE-DEE6-4F24-89DF-23771EEFCFE1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3479F6FE-DEE6-4F24-89DF-23771EEFCFE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3479F6FE-DEE6-4F24-89DF-23771EEFCFE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3479F6FE-DEE6-4F24-89DF-23771EEFCFE1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -4,17 +4,15 @@ using System.Threading.Tasks;
 
 namespace SW.Serverless.SampleAdapter1
 {
-    class Program  : AdapterBase
+    class Program  
     {
         async static Task Main(string[] args)
         {
-            var program = new Program();
-            await program.Run();
+            //Console.ReadLine();
+            await Runner.Run(new Handler());
+
         }
 
-        async protected override Task<string> Handle(string input)
-        {
-            return input;
-        }
+
     }
 }

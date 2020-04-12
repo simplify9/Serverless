@@ -1,39 +1,49 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
+using SW.CloudFiles;
 using SW.PrimitiveTypes;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace SW.Serverless
 {
-    public class PipelineService
+     class ServerlessServiceOld : IServerlessService
     {
+        private static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
+        private readonly ILogger<ServerlessServiceOld> logger;
+        private readonly ServerlessOptions serverlessOptions;
+        private readonly IMemoryCache memoryCache;
 
-        readonly AdapterService adapterService;
+        //readonly AdapterService adapterService;
 
-        public PipelineService(AdapterService adapterService)
+        public ServerlessServiceOld(ILogger<ServerlessServiceOld> logger, ServerlessOptions serverlessOptions, IMemoryCache memoryCache)
         {
-            this.adapterService = adapterService;
+            this.logger = logger;
+            this.serverlessOptions = serverlessOptions;
+            this.memoryCache = memoryCache;
+            //this.adapterService = adapterService;
         }
 
 
 
         public async Task<string> Run(string adapterId, string input)
         {
-            var adapterpath = await adapterService.Install(adapterId);
+            //var adapterpath = await adapterService.Install(adapterId);
+            var adapterpath = @"C:\Users\Samer Awajan\source\repos\Serverless\SW.Serverless.SampleAdapter1\bin\Debug\netcoreapp3.1\SW.Serverless.SampleAdapter1.dll";
 
             var output = await RunOutOfProcess(adapterpath, input);
 
             return output;
         }
 
-        Task<string> RunOutOfProcess(string path, string input)
+        async Task<string> RunOutOfProcess(string path, string input)
         {
-            //var input = JsonConvert.SerializeObject(pipelineRequest);
             var tcs = new TaskCompletionSource<string>();
             var process = new Process
             {
@@ -42,10 +52,15 @@ namespace SW.Serverless
                 {
                     Arguments = $"\"{path}\"",
                     WorkingDirectory = Path.GetDirectoryName(path),
+                    UseShellExecute = false,
+
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
-                    UseShellExecute = false
+
+                    StandardInputEncoding = Encoding.UTF8,
+                    StandardOutputEncoding = Encoding.UTF8,
+                    //StandardErrorEncoding = Encoding.UTF8,
                 }
             };
 
@@ -56,13 +71,10 @@ namespace SW.Serverless
                 period: Timeout.InfiniteTimeSpan);
 
             var output = "";
-            //bool dataReceived = false;
-            //PipelineResponse resp;
+
             process.OutputDataReceived += (sender, args) =>
             {
-               if (args.Data != null) output += args.Data;
-
-               //dataReceived = true;
+                if (args.Data != null) output += args.Data;
             };
 
             process.Exited += (sender, args) =>
@@ -104,12 +116,15 @@ namespace SW.Serverless
             };
 
             if (!process.Start()) throw new SWException("Process reused!");
+            await process.StandardInput.WriteAsync(input.Replace("\n", ""));
+            await process.StandardInput.WriteLineAsync();
+            //await process.StandardInput.FlushAsync();
+            //process.StandardInput.Close();
 
-            process.StandardInput.WriteLine(input);
-            process.StandardInput.Flush();
             process.BeginOutputReadLine();
 
-            return tcs.Task;
+            return await tcs.Task;
         }
+
     }
 }

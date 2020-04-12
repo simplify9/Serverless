@@ -5,11 +5,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SimplyWorks.CloudFiles" Version="2020.4.3.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\SW.Serverless\SW.Serverless.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="adapters\" />
   </ItemGroup>
 
 

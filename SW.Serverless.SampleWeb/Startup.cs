@@ -10,7 +10,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SW.CloudFiles;
 
 namespace SW.Serverless.SampleWeb
 {
@@ -27,16 +26,15 @@ namespace SW.Serverless.SampleWeb
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddCloudFiles(config =>
+            services.AddServerless(config =>
             {
                 config.AccessKeyId = "R3LNFRKWMAC4OCCRICS5";
                 config.SecretAccessKey = "YPyyTdxs+lZMQEtYIDRK9lkIzjJrCKXinE3OfKEfc7k";
                 config.ServiceUrl = "https://fra1.digitaloceanspaces.com";
                 config.BucketName = "sf9";
+
             });
-            services.AddServerless(config =>
-            {
-            });
+            services.AddMemoryCache();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
