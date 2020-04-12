@@ -34,6 +34,7 @@ namespace SW.Serverless.SampleWeb.Controllers
             var input = await stream.ReadToEndAsync();
             var result = await serverless.InvokeAsync("TestString", input);
             return Ok(result);
+            //return Ok();
         }
 
 

@@ -21,6 +21,7 @@ namespace SW.Serverless
         private Process process;
         private TaskCompletionSource<string> taskCompletionSource;
         private Timer invocationTimeoutTimer;
+        private bool processStarted;
 
         public ServerlessService(ServerlessOptions serverlessOptions, IMemoryCache memoryCache)
         {
@@ -31,13 +32,11 @@ namespace SW.Serverless
         async public Task StartAsync(string adapterId)
         {
 
+            if (processStarted)
+                throw new Exception("Already started.");
+
             var adapterpath = await Install(adapterId);
             //var adapterpath = @"C:\Users\Samer Awajan\source\repos\Serverless\SW.Serverless.SampleAdapter1\bin\Debug\netcoreapp3.1\SW.Serverless.SampleAdapter1.dll";
-
-            //var output = await RunOutOfProcess(adapterpath, input);
-
-            //return output;
-
 
             process = new Process
             {
@@ -56,9 +55,7 @@ namespace SW.Serverless
                     StandardOutputEncoding = Encoding.UTF8,
                     //StandardErrorEncoding = Encoding.UTF8,
                 }
-
             };
-
 
             process.OutputDataReceived += OutputDataReceived;
             process.ErrorDataReceived += ErrorDataReceived;
@@ -66,15 +63,13 @@ namespace SW.Serverless
             if (!process.Start())
                 throw new SWException("Process reused!");
 
+            processStarted = true;
+
             process.BeginOutputReadLine();
-
-            //return serverlessService;
-
         }
 
         async public Task InvokeVoidAsync(string command, string input = null)
         {
-
             await InvokeAsync(command, input);
         }
 
@@ -156,7 +151,7 @@ namespace SW.Serverless
 
                         });
 
-                        using var stream = await cloudFilesService.OpenReadAcync($"adapters/{adapterId}".ToLower());
+                        using var stream = await cloudFilesService.OpenReadAsync($"adapters/{adapterId}".ToLower());
                         using var archive = new ZipArchive(stream);
 
                         foreach (var entry in archive.Entries)
@@ -207,10 +202,12 @@ namespace SW.Serverless
 
         public void Dispose()
         {
-            process?.Kill();
-            process?.Dispose();
-
-            invocationTimeoutTimer?.Dispose();
+            if (processStarted)
+            {
+                process?.Kill();
+                process?.Dispose();
+                invocationTimeoutTimer?.Dispose();
+            }
         }
     }
 }

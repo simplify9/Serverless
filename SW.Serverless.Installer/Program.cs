@@ -71,7 +71,7 @@ namespace SW.Serverless.Installer
 
                 using var zipFileStream = File.OpenRead(zipFileName);
 
-                await cloudService.WriteAcync(zipFileStream, new WriteFileSettings
+                await cloudService.WriteAsync(zipFileStream, new WriteFileSettings
                 {
                     ContentType = "application/zip",
                     Key = $"adapters/{args[1]}".ToLower(),

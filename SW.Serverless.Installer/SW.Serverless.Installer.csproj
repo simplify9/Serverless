@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SimplyWorks.CloudFiles" Version="2020.4.12.3" />
+    <PackageReference Include="SimplyWorks.CloudFiles" Version="2020.4.13.1" />
 
   </ItemGroup>
 
