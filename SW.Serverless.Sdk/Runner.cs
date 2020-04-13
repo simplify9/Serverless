@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -16,6 +17,10 @@ namespace SW.Serverless.Sdk
         {
             Console.InputEncoding = Encoding.UTF8;
             Console.OutputEncoding = Encoding.UTF8;
+            //using var standardError = new StreamWriter(Console.OpenStandardError());
+            //standardError.AutoFlush = true;
+            //Console.SetError(standardError);
+
 
             var methodsDictionary = new Dictionary<string, HandlerMethodInfo>(StringComparer.OrdinalIgnoreCase);
 
@@ -40,6 +45,8 @@ namespace SW.Serverless.Sdk
                     MethodInfo = m,
                     Void = false
                 }));
+
+            throw new NotSupportedException();
 
             while (true)
             {
@@ -70,22 +77,12 @@ namespace SW.Serverless.Sdk
 
                     else
                         throw new NotSupportedException();
-
-
-                    //await Task.Delay(TimeSpan.FromMinutes(2));
-                    //var result = await Handle(input);
-                    //await Console.Out.WriteLineAsync(result.Replace("\n", ""));
                 }
                 catch (Exception ex)
                 {
-                    Console.Error.WriteLine(ex.ToString().Replace("\n", ""));
+                    await Console.Out.WriteLineAsync($"{Constants.ErrorIdentifier}{ex.ToString().Replace("\n", Constants.NewLineIdentifier)}");
                 }
             };
-
-
-
         }
-        //protected abstract Task<string> Handle(string input);
-
     }
 }

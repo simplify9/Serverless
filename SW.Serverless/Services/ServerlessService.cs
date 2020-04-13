@@ -35,8 +35,8 @@ namespace SW.Serverless
             if (processStarted)
                 throw new Exception("Already started.");
 
-            var adapterpath = await Install(adapterId);
-            //var adapterpath = @"C:\Users\Samer Awajan\source\repos\Serverless\SW.Serverless.SampleAdapter1\bin\Debug\netcoreapp3.1\SW.Serverless.SampleAdapter1.dll";
+            //var adapterpath = await Install(adapterId);
+            var adapterpath = @"C:\Users\Samer Awajan\source\repos\Serverless\SW.Serverless.SampleAdapter2\bin\Debug\netcoreapp3.1\SW.Serverless.SampleAdapter2.dll";
 
             process = new Process
             {
@@ -49,7 +49,7 @@ namespace SW.Serverless
 
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true,
-                    RedirectStandardError = true,
+                    //RedirectStandardError = true,
 
                     StandardInputEncoding = Encoding.UTF8,
                     StandardOutputEncoding = Encoding.UTF8,
@@ -58,7 +58,7 @@ namespace SW.Serverless
             };
 
             process.OutputDataReceived += OutputDataReceived;
-            process.ErrorDataReceived += ErrorDataReceived;
+            //process.ErrorDataReceived += ErrorDataReceived;
 
             if (!process.Start())
                 throw new SWException("Process reused!");
@@ -87,10 +87,13 @@ namespace SW.Serverless
                 dueTime: TimeSpan.FromSeconds(30),
                 period: Timeout.InfiniteTimeSpan);
 
+
             await process.StandardInput.WriteLineAsync($"{Constants.Delimiter}{command}{Constants.Delimiter}{input}{Constants.Delimiter}".Replace("\n", Constants.NewLineIdentifier));
 
             return await taskCompletionSource.Task;
         }
+
+
 
         void InvocationTimeoutTimerCallback(object state)
         {
@@ -98,23 +101,35 @@ namespace SW.Serverless
             taskCompletionSource.TrySetException(new TimeoutException());
         }
 
-        void ErrorDataReceived(object sender, DataReceivedEventArgs args)
-        {
-            invocationTimeoutTimer.Dispose();
-            taskCompletionSource.TrySetException(new Exception(args.Data));
-        }
+        //void ErrorDataReceived(object sender, DataReceivedEventArgs args)
+        //{
+        //    invocationTimeoutTimer.Dispose();
+        //    taskCompletionSource.TrySetException(new Exception(args.Data));
+        //}
 
         void OutputDataReceived(object sender, DataReceivedEventArgs args)
         {
-            invocationTimeoutTimer.Dispose();
+            invocationTimeoutTimer?.Dispose();
 
             if (args.Data == null)
-                throw new Exception("Received null data.");
+            {
+                taskCompletionSource?.TrySetException(new Exception("Received null data."));
+                return;
+            }
+
+            if (args.Data.StartsWith(Constants.ErrorIdentifier))
+            {
+                taskCompletionSource?.TrySetException(new Exception(args.Data));
+                return;
+            }
 
             var outputSegments = args.Data.Split(Constants.Delimiter);
 
             if (outputSegments.Length != 3)
-                throw new Exception("Wrong data format.");
+            {
+                taskCompletionSource?.TrySetException(new Exception("Wrong data format."));
+                return;
+            }
 
             var outputDenormalized = outputSegments[1].Replace(Constants.NewLineIdentifier, "\n");
 
@@ -124,9 +139,9 @@ namespace SW.Serverless
                 taskCompletionSource.TrySetResult(outputDenormalized);
         }
 
-        public async Task<string> Install(string adapterId)
+        async Task<string> Install(string adapterId)
         {
-            
+
             var adapterConfig = await GetAdapterMetadata(adapterId);
 
             var adapterDiretoryPath = $"{serverlessOptions.AdapterRootPath}/{adapterConfig.Hash}";//Path.Combine(ConfigurationManager.AppSettings["PluginsFolderPath"], BitConverter.ToString(_data).Replace("-", "").ToLower());
@@ -204,8 +219,11 @@ namespace SW.Serverless
         {
             if (processStarted)
             {
-                process?.Kill();
-                process?.Dispose();
+                if (!process.HasExited)
+                    process.Kill();
+
+                process.Dispose();
+
                 invocationTimeoutTimer?.Dispose();
             }
         }

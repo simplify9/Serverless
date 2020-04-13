@@ -9,6 +9,7 @@ namespace SW.Serverless.Sdk
         public const string Delimiter = "#!#";
         public const string NullIdentifier = "{{null}}";
         public const string NewLineIdentifier = "{{newline}}";
+        public const string ErrorIdentifier = "{{error}}";
 
     }
 }

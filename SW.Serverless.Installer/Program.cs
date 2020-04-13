@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace SW.Serverless.Installer
@@ -13,6 +14,22 @@ namespace SW.Serverless.Installer
     {
         async static Task Main(string[] args)
         {
+
+
+            //if (args.Length == 0)
+            //{
+            //    var versionString = Assembly.GetEntryAssembly()
+            //                            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            //                            .InformationalVersion
+            //                            .ToString();
+
+            //    Console.WriteLine($"serverless v{versionString}");
+            //    Console.WriteLine("-------------");
+            //    Console.WriteLine("\nUsage:");
+            //    Console.WriteLine("  serverless <message>");
+            //    return;
+            //}
+
 
             var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
 

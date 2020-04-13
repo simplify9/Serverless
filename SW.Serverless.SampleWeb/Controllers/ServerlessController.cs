@@ -29,10 +29,17 @@ namespace SW.Serverless.SampleWeb.Controllers
         public async Task<IActionResult> Invoke(string adapterId)
         {
             using var stream = new StreamReader(Request.Body);
+
             var serverless = serviceProvider.GetService<ServerlessService>();
+
             await serverless.StartAsync(adapterId);
             var input = await stream.ReadToEndAsync();
-            var result = await serverless.InvokeAsync("TestString", input);
+            string result = null;
+            //for (var index = 0; index< 10000; index++)
+            //{
+            //     result = await serverless.InvokeAsync("TestString", input);
+            //}
+            result = await serverless.InvokeAsync("TestString", input);
             return Ok(result);
             //return Ok();
         }

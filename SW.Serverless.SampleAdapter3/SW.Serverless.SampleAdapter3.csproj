@@ -6,10 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.7.82" />
-    <PackageReference Include="SimplyWorks.CloudFiles" Version="2020.4.13.1" />
-
+    <ProjectReference Include="..\SW.Serverless.Sdk\SW.Serverless.Sdk.csproj" />
   </ItemGroup>
-
 
 </Project>
