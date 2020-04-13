@@ -10,9 +10,6 @@ namespace SW.Serverless.Sdk
 {
     public sealed class Runner
     {
-
-
-
         async public static Task Run(object commandHandler)
         {
             Console.InputEncoding = Encoding.UTF8;
@@ -45,8 +42,6 @@ namespace SW.Serverless.Sdk
                     MethodInfo = m,
                     Void = false
                 }));
-
-            throw new NotSupportedException();
 
             while (true)
             {
