@@ -7,8 +7,8 @@ namespace SW.Serverless.Installer
 {
     class Options
     {
-        [Option('v', "verbose", Required = false, HelpText = "Set output to verbose messages.")]
-        public bool Verbose { get; set; }
+        //[Option('v', "verbose", Required = false, HelpText = "Set output to verbose messages.")]
+        //public bool Verbose { get; set; }
 
         [Option('a', "accesskey", Required = true, HelpText = "Access key for storage.")]
         public string AccessKeyId { get; set; }
@@ -25,7 +25,7 @@ namespace SW.Serverless.Installer
         [Value(0, Required = true, HelpText = "Path to project file (csproj)")]
         public string ProjectPath { get; set; }
 
-        [Value(1, Required = true)]
+        [Value(1, Required = true, HelpText = "Adapter name")]
         public string AdapterName { get; set; }
     }
 }

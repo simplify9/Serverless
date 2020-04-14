@@ -22,14 +22,6 @@ namespace SW.Serverless.Installer
 
         static void HandleParseError(IEnumerable<Error> errs)
         {
-            //foreach (var err in errs)
-            //{
-            //    if (err is MissingRequiredOptionError error)
-            //        Console.WriteLine($"Missing required option {error.NameInfo.NameText}.");
-
-
-            //}
-
             Console.ReadKey();
         }
 
@@ -38,29 +30,72 @@ namespace SW.Serverless.Installer
 
             try
             {
+                Environment.ExitCode = 1;
+
                 var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
-                var process = new Process
-                {
-                    EnableRaisingEvents = true,
-                    StartInfo = new ProcessStartInfo("dotnet")
-                    {
-                        Arguments = $"publish \"{opts.ProjectPath}\" -o \"{tempPath}\"",
-                        //WorkingDirectory = Path.GetDirectoryName(adapterpath),
-                        //UseShellExecute = false,
-                        //RedirectStandardInput = true,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                    }
-                };
 
-                process.OutputDataReceived += OutputDataReceived;
-                process.ErrorDataReceived += OutputDataReceived;
-                process.Start();
-                process.BeginOutputReadLine();
-                process.WaitForExit();
+                if (!BuildPublish(opts.ProjectPath, tempPath)) return;
 
-                var filesToCompress = Directory.GetFiles(tempPath);
                 var zipFileName = Path.Combine(tempPath, $"{opts.AdapterName}");
+
+                if (!Compress(tempPath, zipFileName)) return;
+
+                var projectFileName = Path.GetFileName(opts.ProjectPath);
+                var entryAssembly = $"{projectFileName.Remove(projectFileName.LastIndexOf('.'))}.dll";
+
+                if (!PushToCloud(zipFileName, opts.AdapterName, entryAssembly, opts.AccessKeyId, opts.SecretAccessKey, opts.ServiceUrl, opts.BucketName)) return;
+
+                if (!Cleanup(tempPath)) return;
+
+                Environment.ExitCode = 0;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+
+        }
+
+        static bool BuildPublish(string projectPath, string outputPath)
+        {
+            Console.WriteLine("Building and publishing...");
+
+            var process = new Process
+            {
+                EnableRaisingEvents = true,
+                StartInfo = new ProcessStartInfo("dotnet")
+                {
+                    Arguments = $"publish \"{projectPath}\" -o \"{outputPath}\"",
+                    //WorkingDirectory = Path.GetDirectoryName(adapterpath),
+                    //UseShellExecute = false,
+                    //RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                }
+            };
+
+            process.OutputDataReceived += OutputDataReceived;
+            process.ErrorDataReceived += OutputDataReceived;
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+
+            process.WaitForExit();
+
+            var result = process.ExitCode == 0;
+
+            Console.WriteLine($"Building and publishing {(result ? "succeeded" : "failed")}.");
+
+            return result;
+        }
+
+        static bool Compress(string path, string zipFileName)
+        {
+            try
+            {
+                Console.WriteLine("Compressing files...");
+
+                var filesToCompress = Directory.GetFiles(path);
 
                 {
                     using var stream = File.OpenWrite(zipFileName);
@@ -70,41 +105,84 @@ namespace SW.Serverless.Installer
                         archive.CreateEntryFromFile(file, Path.GetFileName(file));
                 }
 
+                Console.WriteLine("Compressing files succeeded.");
+                return true;
+            }
+            catch (Exception ex)
+            {
+
+                Console.WriteLine($"Compressing files failed: {ex}");
+                return false;
+
+            }
+
+
+        }
+
+        static bool PushToCloud(
+            string zipFielPath,
+            string adapterName,
+            string entryAssembly,
+            string accessKeyId,
+            string secretAccessKey,
+            string serviceUrl,
+            string bucketName)
+        {
+
+            try
+            {
+
+                Console.WriteLine("Pushing to cloud...");
+
+
+                using var cloudService = new CloudFilesService(new CloudFilesOptions
                 {
-                    var projectFileName = Path.GetFileName(opts.ProjectPath);
-                    var entryAssembly = $"{projectFileName.Remove(projectFileName.LastIndexOf('.'))}.dll";
+                    AccessKeyId = accessKeyId,
+                    SecretAccessKey = secretAccessKey,
+                    ServiceUrl = serviceUrl,
+                    BucketName = bucketName
+                });
 
-                    using var cloudService = new CloudFilesService(new CloudFilesOptions
-                    {
-                        AccessKeyId = opts.AccessKeyId,
-                        SecretAccessKey = opts.SecretAccessKey,
-                        ServiceUrl = opts.ServiceUrl,
-                        BucketName = opts.BucketName
-                    });
+                using var zipFileStream = File.OpenRead(zipFielPath);
 
-                    using var zipFileStream = File.OpenRead(zipFileName);
-
-                    cloudService.WriteAsync(zipFileStream, new WriteFileSettings
-                    {
-                        ContentType = "application/zip",
-                        Key = $"adapters/{opts.AdapterName}".ToLower(),
-                        Metadata = new Dictionary<string, string>
+                cloudService.WriteAsync(zipFileStream, new WriteFileSettings
+                {
+                    ContentType = "application/zip",
+                    Key = $"adapters/{adapterName}".ToLower(),
+                    Metadata = new Dictionary<string, string>
                         {
                             {"EntryAssembly", entryAssembly}
                         }
-                    }).Wait();
-                }
+                }).Wait();
+
+                Console.WriteLine("Pushing to cloud succeeded.");
+                return true;
 
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Console.WriteLine($"Pushing to cloud failed: {ex}");
+                return false;
             }
-
-            Console.ReadLine();
-
         }
 
+        static bool Cleanup(string tempPath)
+        {
+            try
+            {
+                Console.WriteLine("Cleaning up...");
+                Directory.Delete(tempPath, true);
+                return true;
+
+            }
+            catch (Exception ex)
+            {
+
+                Console.WriteLine($"Cleaning up failed: {ex}");
+                return false;
+            }
+
+        }
 
         static void OutputDataReceived(object sender, DataReceivedEventArgs args)
         {
