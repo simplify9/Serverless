@@ -17,10 +17,8 @@ namespace SW.Serverless
             var serverlessOptions = new ServerlessOptions();
             if (configure != null) configure.Invoke(serverlessOptions);
             services.AddSingleton(serverlessOptions);
-            //services.AddSingleton<AdapterService>();
-            services.AddSingleton<ServerlessServiceOld>();
-            services.AddTransient<ServerlessService>();
-
+            services.AddTransient<IServerlessService, ServerlessService>();
+            services.AddMemoryCache();
 
             return services;
         }

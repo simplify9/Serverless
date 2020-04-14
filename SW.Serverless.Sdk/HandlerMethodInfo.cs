@@ -9,5 +9,6 @@ namespace SW.Serverless.Sdk
     {
         public MethodInfo MethodInfo { get; set; }
         public bool Void { get; set; }
+        public bool Parameterless { get; set; }
     }
 }

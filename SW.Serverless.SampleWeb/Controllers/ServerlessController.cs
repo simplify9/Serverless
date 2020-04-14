@@ -30,7 +30,7 @@ namespace SW.Serverless.SampleWeb.Controllers
         {
             using var stream = new StreamReader(Request.Body);
 
-            var serverless = serviceProvider.GetService<ServerlessService>();
+            var serverless = serviceProvider.GetService<IServerlessService>();
 
             await serverless.StartAsync(adapterId);
             var input = await stream.ReadToEndAsync();

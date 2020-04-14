@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SW.Serverless.Sdk;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ namespace SW.Serverless.SampleAdapter2
 
         async public Task<string> TestString(string input)
         {
+            AdapterLogger.LogWarning("not implemented.");
             throw new NotImplementedException();
         }
 

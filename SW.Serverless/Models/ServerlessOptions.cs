@@ -10,8 +10,10 @@ namespace SW.Serverless
         public string SecretAccessKey { get; set; }
         public string BucketName { get; set; }
         public string ServiceUrl { get; set; }
-
-        public string AdapterRootPath { get; set; } = "./adapters";
+        public string AdapterLocalPath { get; set; } = "./adapters";
+        public int AdapterMetadataCacheDuration { get; set; } = 5;
+        public string AdapterRemotePath { get; set; } = "adapters";
+        public int CommandTimeout { get; set; } = 30;
 
     }
 }

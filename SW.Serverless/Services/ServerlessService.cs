@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using SW.CloudFiles;
 using SW.PrimitiveTypes;
 using SW.Serverless.Sdk;
@@ -13,52 +14,64 @@ using System.Threading.Tasks;
 
 namespace SW.Serverless
 {
-    public class ServerlessService : IDisposable
+    public class ServerlessService : IServerlessService, IDisposable
     {
         private static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
+        private const string serverlessAdaptersPrefix = "serverless.adapters";
         private readonly ServerlessOptions serverlessOptions;
         private readonly IMemoryCache memoryCache;
+        private readonly ILoggerFactory loggerFactory;
         private Process process;
         private TaskCompletionSource<string> taskCompletionSource;
         private Timer invocationTimeoutTimer;
         private bool processStarted;
+        private ILogger adapterLogger;
 
-        public ServerlessService(ServerlessOptions serverlessOptions, IMemoryCache memoryCache)
+
+        public ServerlessService(ServerlessOptions serverlessOptions, IMemoryCache memoryCache, ILoggerFactory loggerFactory)
         {
             this.serverlessOptions = serverlessOptions;
             this.memoryCache = memoryCache;
+            this.loggerFactory = loggerFactory;
+            
         }
 
-        async public Task StartAsync(string adapterId)
+        async public Task StartAsync(string adapterId, string[] arguments = null)
         {
+            if (string.IsNullOrWhiteSpace(adapterId) || adapterId.Contains(' '))
+            {
+                throw new ArgumentException("Invalid name.", nameof(adapterId));
+            }
 
             if (processStarted)
                 throw new Exception("Already started.");
 
-            var adapterpath = await Install(adapterId);
-            //var adapterpath = @"C:\Users\Samer Awajan\source\repos\Serverless\SW.Serverless.SampleAdapter2\bin\Debug\netcoreapp3.1\SW.Serverless.SampleAdapter2.dll";
+            //var adapterpath = await Install(adapterId);
+            var adapterpath = @"C:\Users\Samer Awajan\source\repos\Serverless\SW.Serverless.SampleAdapter2\bin\Debug\netcoreapp3.1\SW.Serverless.SampleAdapter2.dll";
+
+            adapterLogger = loggerFactory.CreateLogger($"{serverlessAdaptersPrefix}.{adapterId}".ToLower());
 
             process = new Process
             {
                 EnableRaisingEvents = true,
                 StartInfo = new ProcessStartInfo("dotnet")
                 {
-                    Arguments = $"\"{adapterpath}\"",
+                    Arguments = $"\"{adapterpath}\" testarg1 \"testagr2\"",
                     WorkingDirectory = Path.GetDirectoryName(adapterpath),
                     UseShellExecute = false,
 
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true,
-                    //RedirectStandardError = true,
+                    RedirectStandardError = true,
 
                     StandardInputEncoding = Encoding.UTF8,
                     StandardOutputEncoding = Encoding.UTF8,
-                    //StandardErrorEncoding = Encoding.UTF8,
+                    StandardErrorEncoding = Encoding.UTF8,
                 }
             };
 
             process.OutputDataReceived += OutputDataReceived;
-            //process.ErrorDataReceived += ErrorDataReceived;
+            process.ErrorDataReceived += ErrorDataReceived;
 
             if (!process.Start())
                 throw new SWException("Process reused!");
@@ -66,6 +79,7 @@ namespace SW.Serverless
             processStarted = true;
 
             process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
         }
 
         async public Task InvokeVoidAsync(string command, string input = null)
@@ -76,6 +90,11 @@ namespace SW.Serverless
         async public Task<string> InvokeAsync(string command, string input = null)
         {
 
+            if (string.IsNullOrWhiteSpace(command) || command.Contains(' '))
+            {
+                throw new ArgumentException("Invalid name.", nameof(command));
+            }
+
             if (!processStarted || process.HasExited)
                 throw new Exception("Process not started or terminated.");
 
@@ -84,7 +103,7 @@ namespace SW.Serverless
             invocationTimeoutTimer = new Timer(
                 callback: InvocationTimeoutTimerCallback,
                 state: null,
-                dueTime: TimeSpan.FromSeconds(30),
+                dueTime: TimeSpan.FromSeconds(serverlessOptions.CommandTimeout),
                 period: Timeout.InfiniteTimeSpan);
 
 
@@ -93,19 +112,32 @@ namespace SW.Serverless
             return await taskCompletionSource.Task;
         }
 
-
-
         void InvocationTimeoutTimerCallback(object state)
         {
             invocationTimeoutTimer.Dispose();
             taskCompletionSource.TrySetException(new TimeoutException());
         }
 
-        //void ErrorDataReceived(object sender, DataReceivedEventArgs args)
-        //{
-        //    invocationTimeoutTimer.Dispose();
-        //    taskCompletionSource.TrySetException(new Exception(args.Data));
-        //}
+        void ErrorDataReceived(object sender, DataReceivedEventArgs args)
+        {
+            if (args.Data == null)
+            {
+                adapterLogger.LogWarning("Null data received on error stream.");
+            }
+            else if (args.Data.StartsWith(Constants.LogInformationIdentifier))
+            {
+                adapterLogger.LogInformation(args.Data.Replace(Constants.LogInformationIdentifier, "").Replace(Constants.NewLineIdentifier, "\n"));
+            }
+            else if (args.Data.StartsWith(Constants.LogWarningIdentifier))
+            {
+                adapterLogger.LogInformation(args.Data.Replace(Constants.LogWarningIdentifier, "").Replace(Constants.NewLineIdentifier, "\n"));
+            }
+            else if (args.Data.StartsWith(Constants.LogErrorIdentifier))
+            {
+                adapterLogger.LogInformation(args.Data.Replace(Constants.LogErrorIdentifier, "").Replace(Constants.NewLineIdentifier, "\n"));
+            }
+
+        }
 
         void OutputDataReceived(object sender, DataReceivedEventArgs args)
         {
@@ -144,7 +176,7 @@ namespace SW.Serverless
 
             var adapterConfig = await GetAdapterMetadata(adapterId);
 
-            var adapterDiretoryPath = $"{serverlessOptions.AdapterRootPath}/{adapterConfig.Hash}";//Path.Combine(ConfigurationManager.AppSettings["PluginsFolderPath"], BitConverter.ToString(_data).Replace("-", "").ToLower());
+            var adapterDiretoryPath = $"{serverlessOptions.AdapterLocalPath}/{adapterConfig.Hash}";//Path.Combine(ConfigurationManager.AppSettings["PluginsFolderPath"], BitConverter.ToString(_data).Replace("-", "").ToLower());
             var adapterPath = Path.GetFullPath($"{adapterDiretoryPath}/{adapterConfig.EntryAssembly}");
 
             await semaphoreSlim.WaitAsync();
@@ -166,7 +198,7 @@ namespace SW.Serverless
 
                         });
 
-                        using var stream = await cloudFilesService.OpenReadAsync($"adapters/{adapterId}".ToLower());
+                        using var stream = await cloudFilesService.OpenReadAsync($"{serverlessOptions.AdapterRemotePath}/{adapterId}".ToLower());
                         using var archive = new ZipArchive(stream);
 
                         foreach (var entry in archive.Entries)
@@ -204,14 +236,14 @@ namespace SW.Serverless
 
             });
 
-            var metaData = await cloudFilesService.GetMetadataAsync($"adapters/{adapterId}".ToLower());
+            var metaData = await cloudFilesService.GetMetadataAsync($"{serverlessOptions.AdapterRemotePath}/{adapterId}".ToLower());
             adapterMetadata = new AdapterMetadata
             {
                 EntryAssembly = metaData["EntryAssembly"],
                 Hash = metaData["Hash"]
             };
 
-            return memoryCache.Set($"adapters:{adapterId}", adapterMetadata, TimeSpan.FromMinutes(5));
+            return memoryCache.Set($"adapters:{adapterId}", adapterMetadata, TimeSpan.FromMinutes(serverlessOptions.AdapterMetadataCacheDuration));
         }
 
 
