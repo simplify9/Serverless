@@ -76,7 +76,11 @@ namespace SW.Serverless.Sdk
                 {
 
                     idleTimer = new Timer(
-                        callback: state => throw new TimeoutException("Timed out waiting for command."),
+                        callback: state =>
+                        {
+                            idleTimer.Dispose();
+                            throw new TimeoutException("Timed out waiting for command.");
+                        },
                         state: null,
                         dueTime: TimeSpan.FromSeconds(idleTimeout),
                         period: Timeout.InfiniteTimeSpan);

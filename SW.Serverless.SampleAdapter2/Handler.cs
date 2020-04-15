@@ -15,9 +15,9 @@ namespace SW.Serverless.SampleAdapter2
 
         async public Task<string> TestString(string input)
         {
-            AdapterLogger.LogWarning("not implemented.");
-            AdapterLogger.LogWarning("not implemented.");
-            return "hello";
+            await Task.Delay(TimeSpan.FromSeconds(40));
+            
+            return "hello from version 2";
         }
 
         async public Task<string> Test3()

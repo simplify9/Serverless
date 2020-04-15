@@ -17,15 +17,18 @@ namespace SW.Serverless
     public class ServerlessService : IServerlessService, IDisposable
     {
         private static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
-        private const string serverlessAdaptersPrefix = "serverless.adapters";
+        private const string adaptersNamingPrefix = "serverless.adapters";
         private readonly ServerlessOptions serverlessOptions;
         private readonly IMemoryCache memoryCache;
         private readonly ILoggerFactory loggerFactory;
+        private readonly ILogger<ServerlessService> logger;
+        private readonly CloudFilesOptions cloudFilesOptions;
         private Process process;
         private TaskCompletionSource<string> taskCompletionSource;
         private Timer invocationTimeoutTimer;
         private bool processStarted;
         private ILogger adapterLogger;
+
 
 
         public ServerlessService(ServerlessOptions serverlessOptions, IMemoryCache memoryCache, ILoggerFactory loggerFactory)
@@ -34,7 +37,20 @@ namespace SW.Serverless
             this.memoryCache = memoryCache;
             this.loggerFactory = loggerFactory;
 
+            logger = loggerFactory.CreateLogger<ServerlessService>();
+
+            cloudFilesOptions = new CloudFilesOptions
+            {
+                AccessKeyId = serverlessOptions.AccessKeyId,
+                BucketName = serverlessOptions.BucketName,
+                SecretAccessKey = serverlessOptions.SecretAccessKey,
+                ServiceUrl = serverlessOptions.ServiceUrl
+
+            };
+
         }
+
+        //var adapterpath = @"C:\Users\Samer Awajan\source\repos\Serverless\SW.Serverless.SampleAdapter2\bin\Debug\netcoreapp3.1\SW.Serverless.SampleAdapter2.dll";
 
         async public Task StartAsync(string adapterId, string[] arguments = null)
         {
@@ -43,21 +59,24 @@ namespace SW.Serverless
                 throw new ArgumentException("Invalid name.", nameof(adapterId));
             }
 
+            var adapterpath = await Install(adapterId);
+
+            await StartAsync(adapterId, adapterpath, arguments);
+        }
+
+        public Task StartAsync(string adapterId, string adapterPath, string[] arguments = null)
+        {
             if (processStarted)
                 throw new Exception("Already started.");
 
-            var adapterpath = await Install(adapterId);
-            //var adapterpath = @"C:\Users\Samer Awajan\source\repos\Serverless\SW.Serverless.SampleAdapter2\bin\Debug\netcoreapp3.1\SW.Serverless.SampleAdapter2.dll";
-
-            adapterLogger = loggerFactory.CreateLogger($"{serverlessAdaptersPrefix}.{adapterId}".ToLower());
+            adapterLogger = loggerFactory.CreateLogger($"{adaptersNamingPrefix}.{adapterId}".ToLower());
 
             process = new Process
             {
-                EnableRaisingEvents = true,
                 StartInfo = new ProcessStartInfo("dotnet")
                 {
-                    Arguments = $"\"{adapterpath}\" {serverlessOptions.IdleTimeout}",
-                    WorkingDirectory = Path.GetDirectoryName(adapterpath),
+                    Arguments = $"\"{adapterPath}\" {serverlessOptions.IdleTimeout}",
+                    WorkingDirectory = Path.GetDirectoryName(adapterPath),
                     UseShellExecute = false,
 
                     RedirectStandardInput = true,
@@ -74,12 +93,14 @@ namespace SW.Serverless
             process.ErrorDataReceived += ErrorDataReceived;
 
             if (!process.Start())
-                throw new SWException("Process reused!");
+                throw new Exception("Process reused!");
 
             processStarted = true;
 
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
+
+            return Task.CompletedTask;
         }
 
         async public Task InvokeVoidAsync(string command, string input = null)
@@ -182,10 +203,8 @@ namespace SW.Serverless
 
         async Task<string> Install(string adapterId)
         {
-
             var adapterConfig = await GetAdapterMetadata(adapterId);
-
-            var adapterDiretoryPath = $"{serverlessOptions.AdapterLocalPath}/{adapterConfig.Hash}";//Path.Combine(ConfigurationManager.AppSettings["PluginsFolderPath"], BitConverter.ToString(_data).Replace("-", "").ToLower());
+            var adapterDiretoryPath = $"{serverlessOptions.AdapterLocalPath}/{adapterConfig.Hash}";
             var adapterPath = Path.GetFullPath($"{adapterDiretoryPath}/{adapterConfig.EntryAssembly}");
 
             await semaphoreSlim.WaitAsync();
@@ -196,17 +215,7 @@ namespace SW.Serverless
                     Directory.CreateDirectory(adapterDiretoryPath);
                     try
                     {
-                        //logger.LogInformation($"Adapter not installed, installing adapter: '{adapterPath}'");
-
-                        using var cloudFilesService = new CloudFilesService(new CloudFilesOptions
-                        {
-                            AccessKeyId = serverlessOptions.AccessKeyId,
-                            BucketName = serverlessOptions.BucketName,
-                            SecretAccessKey = serverlessOptions.SecretAccessKey,
-                            ServiceUrl = serverlessOptions.ServiceUrl
-
-                        });
-
+                        using var cloudFilesService = new CloudFilesService(cloudFilesOptions);
                         using var stream = await cloudFilesService.OpenReadAsync($"{serverlessOptions.AdapterRemotePath}/{adapterId}".ToLower());
                         using var archive = new ZipArchive(stream);
 
@@ -215,11 +224,10 @@ namespace SW.Serverless
 
                         //Process.Start("chmod", $"755 {adapterPath}").WaitForExit(5000);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        //logger.LogError(ex, $"Failed to install adapter: '{adapterPath}'");
                         Directory.Delete(adapterDiretoryPath, true);
-                        throw ex;
+                        throw;
                     }
                 }
             }
@@ -233,17 +241,10 @@ namespace SW.Serverless
 
         async Task<AdapterMetadata> GetAdapterMetadata(string adapterId)
         {
-            if (memoryCache.TryGetValue($"adapters:{adapterId}", out AdapterMetadata adapterMetadata))
+            if (memoryCache.TryGetValue($"{adaptersNamingPrefix}.{adapterId}", out AdapterMetadata adapterMetadata))
                 return adapterMetadata;
 
-            using var cloudFilesService = new CloudFilesService(new CloudFilesOptions
-            {
-                AccessKeyId = serverlessOptions.AccessKeyId,
-                BucketName = serverlessOptions.BucketName,
-                SecretAccessKey = serverlessOptions.SecretAccessKey,
-                ServiceUrl = serverlessOptions.ServiceUrl
-
-            });
+            using var cloudFilesService = new CloudFilesService(cloudFilesOptions);
 
             var metaData = await cloudFilesService.GetMetadataAsync($"{serverlessOptions.AdapterRemotePath}/{adapterId}".ToLower());
             adapterMetadata = new AdapterMetadata
@@ -252,26 +253,34 @@ namespace SW.Serverless
                 Hash = metaData["Hash"]
             };
 
-            return memoryCache.Set($"adapters:{adapterId}", adapterMetadata, TimeSpan.FromMinutes(serverlessOptions.AdapterMetadataCacheDuration));
+            return memoryCache.Set($"{adaptersNamingPrefix}.{adapterId}", adapterMetadata, TimeSpan.FromMinutes(serverlessOptions.AdapterMetadataCacheDuration));
         }
 
 
         public void Dispose()
         {
-            if (processStarted)
+            try
             {
-
-                if (!process.HasExited)
+                if (processStarted)
                 {
-                    process.StandardInput.WriteLine(Constants.QuitCommand);
-                    process.WaitForExit(5000);
-                    if (!process.HasExited) process.Kill();
+
+                    if (!process.HasExited)
+                    {
+                        process.StandardInput.WriteLine(Constants.QuitCommand);
+                        process.WaitForExit(3000);
+                        if (!process.HasExited) process.Kill();
+                    }
+
+                    process.Dispose();
+
+                    invocationTimeoutTimer?.Dispose();
                 }
-
-                process.Dispose();
-
-                invocationTimeoutTimer?.Dispose();
             }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Service did not dispose properly.");
+            }
+
         }
     }
 }

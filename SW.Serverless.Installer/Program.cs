@@ -151,7 +151,8 @@ namespace SW.Serverless.Installer
                     Key = $"adapters/{adapterName}".ToLower(),
                     Metadata = new Dictionary<string, string>
                         {
-                            {"EntryAssembly", entryAssembly}
+                            {"EntryAssembly", entryAssembly},
+                            {"Lang", "dotnet" }
                         }
                 }).Wait();
 

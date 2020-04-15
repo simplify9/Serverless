@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="SimplyWorks.CloudFiles" Version="2020.4.13.1" />
-    <PackageReference Include="SimplyWorks.PrimitiveTypes" Version="2020.4.14.1" />
+    <PackageReference Include="SimplyWorks.PrimitiveTypes" Version="2020.4.15.1" />
   </ItemGroup>
 
   <ItemGroup>
