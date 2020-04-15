@@ -33,7 +33,7 @@ namespace SW.Serverless
             this.serverlessOptions = serverlessOptions;
             this.memoryCache = memoryCache;
             this.loggerFactory = loggerFactory;
-            
+
         }
 
         async public Task StartAsync(string adapterId, string[] arguments = null)
@@ -56,7 +56,7 @@ namespace SW.Serverless
                 EnableRaisingEvents = true,
                 StartInfo = new ProcessStartInfo("dotnet")
                 {
-                    Arguments = $"\"{adapterpath}\" testarg1 \"testagr2\"",
+                    Arguments = $"\"{adapterpath}\" {serverlessOptions.IdleTimeout}",
                     WorkingDirectory = Path.GetDirectoryName(adapterpath),
                     UseShellExecute = false,
 
@@ -84,10 +84,19 @@ namespace SW.Serverless
 
         async public Task InvokeVoidAsync(string command, string input = null)
         {
-            await InvokeAsync(command, input);
+            await InvokeAsync(command, serverlessOptions.CommandTimeout, input);
+        }
+
+        async public Task InvokeVoidAsync(string command, int commandTimeout, string input = null)
+        {
+            await InvokeAsync(command, commandTimeout, input);
         }
 
         async public Task<string> InvokeAsync(string command, string input = null)
+        {
+            return await InvokeAsync(command, serverlessOptions.CommandTimeout, input);
+        }
+        async public Task<string> InvokeAsync(string command, int commandTimeout, string input = null)
         {
 
             if (string.IsNullOrWhiteSpace(command) || command.Contains(' '))
@@ -103,7 +112,7 @@ namespace SW.Serverless
             invocationTimeoutTimer = new Timer(
                 callback: InvocationTimeoutTimerCallback,
                 state: null,
-                dueTime: TimeSpan.FromSeconds(serverlessOptions.CommandTimeout),
+                dueTime: TimeSpan.FromSeconds(commandTimeout),
                 period: Timeout.InfiniteTimeSpan);
 
 
@@ -122,7 +131,7 @@ namespace SW.Serverless
         {
             if (args.Data == null)
             {
-                adapterLogger.LogWarning("Null data received on error stream.");
+                //adapterLogger.LogWarning("Null data received on error stream.");
             }
             else if (args.Data.StartsWith(Constants.LogInformationIdentifier))
             {
@@ -130,11 +139,11 @@ namespace SW.Serverless
             }
             else if (args.Data.StartsWith(Constants.LogWarningIdentifier))
             {
-                adapterLogger.LogInformation(args.Data.Replace(Constants.LogWarningIdentifier, "").Replace(Constants.NewLineIdentifier, "\n"));
+                adapterLogger.LogWarning(args.Data.Replace(Constants.LogWarningIdentifier, "").Replace(Constants.NewLineIdentifier, "\n"));
             }
             else if (args.Data.StartsWith(Constants.LogErrorIdentifier))
             {
-                adapterLogger.LogInformation(args.Data.Replace(Constants.LogErrorIdentifier, "").Replace(Constants.NewLineIdentifier, "\n"));
+                adapterLogger.LogError(args.Data.Replace(Constants.LogErrorIdentifier, "").Replace(Constants.NewLineIdentifier, "\n"));
             }
 
         }
@@ -251,8 +260,13 @@ namespace SW.Serverless
         {
             if (processStarted)
             {
+
                 if (!process.HasExited)
-                    process.Kill();
+                {
+                    process.StandardInput.WriteLine(Constants.QuitCommand);
+                    process.WaitForExit(5000);
+                    if (!process.HasExited) process.Kill();
+                }
 
                 process.Dispose();
 

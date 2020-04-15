@@ -14,6 +14,8 @@ namespace SW.Serverless
         public int AdapterMetadataCacheDuration { get; set; } = 5;
         public string AdapterRemotePath { get; set; } = "adapters";
         public int CommandTimeout { get; set; } = 30;
+        public int IdleTimeout { get; set; } = 300;
+
 
     }
 }

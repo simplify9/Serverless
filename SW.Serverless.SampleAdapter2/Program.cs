@@ -7,10 +7,7 @@ namespace SW.Serverless.SampleAdapter2
 {
     class Program
     {
-        async static Task Main(string[] args)
-        {
-            AdapterLogger.LogInformation($"Started, arguments: {string.Join(",", Environment.GetCommandLineArgs())}");
-            await Runner.Run(new Handler());
-        }
+        async static Task Main(string[] args) => await Runner.Run(new Handler());
+
     }
 }

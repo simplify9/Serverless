@@ -21,7 +21,6 @@ namespace SW.Serverless.SampleWeb.Controllers
 
         public ServerlessController(IServiceProvider serviceProvider)
         {
-            //this.pipelineService = pipelineService;
             this.serviceProvider = serviceProvider;
         }
 
@@ -39,7 +38,9 @@ namespace SW.Serverless.SampleWeb.Controllers
             //{
             //     result = await serverless.InvokeAsync("TestString", input);
             //}
+            //await Task.Delay(TimeSpan.FromSeconds(30));
             result = await serverless.InvokeAsync("TestString", input);
+            
             return Ok(result);
             //return Ok();
         }

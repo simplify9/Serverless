@@ -8,12 +8,8 @@ namespace SW.Serverless
 {
     public static class IServiceCollectionExtensions
     {
-
-
-
-        public static IServiceCollection AddServerless(this IServiceCollection services, Action<ServerlessOptions> configure)
+        public static IServiceCollection AddServerless(this IServiceCollection services, Action<ServerlessOptions> configure = null)
         {
-
             var serverlessOptions = new ServerlessOptions();
             if (configure != null) configure.Invoke(serverlessOptions);
             services.AddSingleton(serverlessOptions);

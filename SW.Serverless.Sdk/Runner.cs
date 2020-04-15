@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SW.Serverless.Sdk
@@ -14,10 +15,16 @@ namespace SW.Serverless.Sdk
 
         async public static Task Run(object commandHandler)
         {
+            Timer idleTimer = null;
+
             try
             {
                 Console.InputEncoding = Encoding.UTF8;
                 Console.OutputEncoding = Encoding.UTF8;
+
+                var idleTimeout = int.Parse(Environment.GetCommandLineArgs()[1]);
+                AdapterLogger.LogInformation($"Idle timeout: {idleTimeout}s.");
+
 
                 var methodsDictionary = new Dictionary<string, HandlerMethodInfo>(StringComparer.OrdinalIgnoreCase);
 
@@ -67,9 +74,21 @@ namespace SW.Serverless.Sdk
 
                 while (true)
                 {
+
+                    idleTimer = new Timer(
+                        callback: state => throw new TimeoutException("Timed out waiting for command."),
+                        state: null,
+                        dueTime: TimeSpan.FromSeconds(idleTimeout),
+                        period: Timeout.InfiniteTimeSpan);
+
                     var input = await Console.In.ReadLineAsync();
+
                     try
                     {
+                        idleTimer.Dispose();
+
+                        if (input == Constants.QuitCommand) break;
+
                         var inputSegments = input.Split(Constants.Delimiter);
 
                         if (inputSegments.Length != 4)
@@ -118,6 +137,10 @@ namespace SW.Serverless.Sdk
             catch (Exception ex)
             {
                 AdapterLogger.LogError(ex, "Terminal error.");
+            }
+            finally
+            {
+                idleTimer?.Dispose();
             }
         }
     }
