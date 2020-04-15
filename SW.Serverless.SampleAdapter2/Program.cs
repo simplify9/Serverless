@@ -7,6 +7,8 @@ namespace SW.Serverless.SampleAdapter2
 {
     class Program
     {
+
+        //build service collection
         async static Task Main(string[] args) => await Runner.Run(new Handler());
 
     }

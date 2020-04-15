@@ -46,8 +46,8 @@ namespace SW.Serverless
             if (processStarted)
                 throw new Exception("Already started.");
 
-            //var adapterpath = await Install(adapterId);
-            var adapterpath = @"C:\Users\Samer Awajan\source\repos\Serverless\SW.Serverless.SampleAdapter2\bin\Debug\netcoreapp3.1\SW.Serverless.SampleAdapter2.dll";
+            var adapterpath = await Install(adapterId);
+            //var adapterpath = @"C:\Users\Samer Awajan\source\repos\Serverless\SW.Serverless.SampleAdapter2\bin\Debug\netcoreapp3.1\SW.Serverless.SampleAdapter2.dll";
 
             adapterLogger = loggerFactory.CreateLogger($"{serverlessAdaptersPrefix}.{adapterId}".ToLower());
 

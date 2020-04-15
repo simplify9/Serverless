@@ -17,13 +17,23 @@ namespace SW.Serverless.SampleAdapter2
         {
             AdapterLogger.LogWarning("not implemented.");
             AdapterLogger.LogWarning("not implemented.");
+            return "hello";
+        }
+
+        async public Task<string> Test3()
+        {
+            AdapterLogger.LogWarning("not implemented.");
+            AdapterLogger.LogWarning("not implemented.");
             throw new NotImplementedException();
         }
 
-        //async public Task<int> TestInt(string input)
-        //{
-        //    return 2;
-        //}
+
+        async public Task TestString2()
+        {
+            AdapterLogger.LogWarning("not implemented.");
+            AdapterLogger.LogWarning("not implemented.");
+            throw new NotImplementedException();
+        }
 
 
     }

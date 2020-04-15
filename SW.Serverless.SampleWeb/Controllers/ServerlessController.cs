@@ -24,8 +24,8 @@ namespace SW.Serverless.SampleWeb.Controllers
             this.serviceProvider = serviceProvider;
         }
 
-        [HttpPost("{adapterId}")]
-        public async Task<IActionResult> Invoke(string adapterId)
+        [HttpPost("{adapterId}/{method}")]
+        public async Task<IActionResult> Invoke(string adapterId, string method)
         {
             using var stream = new StreamReader(Request.Body);
 
@@ -33,14 +33,12 @@ namespace SW.Serverless.SampleWeb.Controllers
 
             await serverless.StartAsync(adapterId);
             var input = await stream.ReadToEndAsync();
-            string result = null;
-            //for (var index = 0; index< 10000; index++)
-            //{
-            //     result = await serverless.InvokeAsync("TestString", input);
-            //}
+
+            var result = await serverless.InvokeAsync(method, input);
+
             //await Task.Delay(TimeSpan.FromSeconds(30));
-            result = await serverless.InvokeAsync("TestString", input);
-            
+            //result = await serverless.InvokeAsync("TestString", input);
+
             return Ok(result);
             //return Ok();
         }

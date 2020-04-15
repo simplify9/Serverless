@@ -22,7 +22,7 @@ namespace SW.Serverless.Installer
 
         static void HandleParseError(IEnumerable<Error> errs)
         {
-            Console.ReadKey();
+            //Console.ReadKey();
         }
 
         static void RunOptions(Options opts)

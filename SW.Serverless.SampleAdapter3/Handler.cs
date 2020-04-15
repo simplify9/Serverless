@@ -16,7 +16,7 @@ namespace SW.Serverless.SampleAdapter3
 
         async public Task<string> ListFiles(string input)
         {
-            return "hello from sampleadapter3";
+             throw new Exception("bad login");
         }
 
 
