@@ -92,6 +92,7 @@ namespace SW.Serverless.Sdk
                         idleTimer.Dispose();
 
                         if (input == Constants.QuitCommand) break;
+                        if (input == null) continue;
 
                         var inputSegments = input.Split(Constants.Delimiter);
 

@@ -33,6 +33,7 @@ namespace SW.Serverless.SampleWeb
                 config.ServiceUrl = "https://fra1.digitaloceanspaces.com";
                 config.BucketName = "sf9";
                 config.AdapterMetadataCacheDuration = 1;
+                //config.IdleTimeout
 
             });
         }
