@@ -15,9 +15,9 @@ namespace SW.Serverless.SampleAdapter2
 
         async public Task<string> TestString(string input)
         {
-            await Task.Delay(TimeSpan.FromSeconds(40));
+            //await Task.Delay(TimeSpan.FromSeconds(40));
             
-            return "hello from version 2";
+            return input;
         }
 
         async public Task<string> Test3()

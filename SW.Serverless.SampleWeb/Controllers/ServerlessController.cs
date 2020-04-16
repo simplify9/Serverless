@@ -31,10 +31,10 @@ namespace SW.Serverless.SampleWeb.Controllers
 
             var serverless = serviceProvider.GetService<IServerlessService>();
 
-            await serverless.StartAsync(adapterId);
+            await serverless.StartAsync(adapterId, @"C:\Users\Samer Awajan\source\repos\Serverless\SW.Serverless.SampleAdapter2\bin\Debug\netcoreapp3.1\SW.Serverless.SampleAdapter2.dll");
             var input = await stream.ReadToEndAsync();
 
-            var result = await serverless.InvokeAsync(method, input);
+            var result = await serverless.InvokeAsync(method, null);
 
             //await Task.Delay(TimeSpan.FromSeconds(30));
             //result = await serverless.InvokeAsync("TestString", input);

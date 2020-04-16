@@ -136,6 +136,7 @@ namespace SW.Serverless
                 dueTime: TimeSpan.FromSeconds(commandTimeout),
                 period: Timeout.InfiniteTimeSpan);
 
+            if (input == null) input = Constants.NullIdentifier;
 
             await process.StandardInput.WriteLineAsync($"{Constants.Delimiter}{command}{Constants.Delimiter}{input}{Constants.Delimiter}".Replace("\n", Constants.NewLineIdentifier));
 
