@@ -28,15 +28,15 @@ stages:
     displayName: build and push image
     steps:
       - task: UseDotNet@2
-          displayName: 'Use .NET Core sdk 3.1.101'
-          inputs:
+        displayName: 'Use .NET Core sdk 3.1.101'
+        inputs:
           packageType: sdk
           version: 3.1.101
           installationPath: $(Agent.ToolsDirectory)/dotnet
 
       - task: DotNetCoreCLI@2
-          displayName: Restore
-          inputs:
+        displayName: Restore
+        inputs:
           command: 'restore'
           projects: '**/*.csproj'
           feedsToUse: 'config'
@@ -49,22 +49,22 @@ stages:
           arguments: '--configuration $(BuildConfiguration)'
 
       - task: DotNetCoreCLI@2
-          displayName: 'dotnet test'
-          inputs:
+        displayName: 'dotnet test'
+        inputs:
           command: test
           projects: '**/*Tests/*.csproj'
 
       - task: DotNetCoreCLI@2
-          displayName: 'dotnet pack'
-          inputs:
+        displayName: 'dotnet pack'
+        inputs:
           command: pack
           packagesToPack: 'SW.Serverless/SW.Serverless.csproj;SW.Serverless.Sdk/SW.Serverless.Sdk.csproj'
           nobuild: true
           versioningScheme: byBuildNumber
 
       - task: DotNetCoreCLI@2
-          displayName: 'dotnet push'
-          inputs:
+        displayName: 'dotnet push'
+        inputs:
           command: push
           publishVstsFeed: 'e5fb2e9c-1207-48a4-8f7b-2e6b32308210'
 
