@@ -58,7 +58,7 @@ stages:
         displayName: 'dotnet pack'
         inputs:
           command: pack
-          packagesToPack: 'SW.Serverless/SW.Serverless.csproj;SW.Serverless.Sdk/SW.Serverless.Sdk.csproj'
+          packagesToPack: 'SW.Serverless/SW.Serverless.csproj;SW.Serverless.Sdk/SW.Serverless.Sdk.csproj;'
           nobuild: true
           versioningScheme: byBuildNumber
 
