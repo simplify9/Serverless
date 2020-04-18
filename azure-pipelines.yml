@@ -17,6 +17,7 @@ variables:
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
   tag: '$(Build.BuildId)'
   k8sServiceConnection: 'k8s-s9'
+  buildConfiguration: 'Release'
 
     
 stages:
