@@ -5,6 +5,7 @@ VisualStudioVersion = 16.0.29521.150
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8767787F-0B72-40D8-B7E2-6E060EA64BE3}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		azure-pipelines.yml = azure-pipelines.yml
 		nuget.config = nuget.config
 	EndProjectSection
@@ -19,11 +20,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SampleAdapters", "SampleAda
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SW.Serverless.SampleAdapter1", "SW.Serverless.SampleAdapter1\SW.Serverless.SampleAdapter1.csproj", "{42A3152F-A5E6-4701-BC35-957003240D92}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SW.Serverless.Installer", "SW.Serverless.Installer\SW.Serverless.Installer.csproj", "{3479F6FE-DEE6-4F24-89DF-23771EEFCFE1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SW.Serverless.Installer", "SW.Serverless.Installer\SW.Serverless.Installer.csproj", "{3479F6FE-DEE6-4F24-89DF-23771EEFCFE1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SW.Serverless.SampleAdapter2", "SW.Serverless.SampleAdapter2\SW.Serverless.SampleAdapter2.csproj", "{B21A3FF0-EDC8-4FA3-A04C-12A465B49D35}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SW.Serverless.SampleAdapter2", "SW.Serverless.SampleAdapter2\SW.Serverless.SampleAdapter2.csproj", "{B21A3FF0-EDC8-4FA3-A04C-12A465B49D35}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SW.Serverless.SampleAdapter3", "SW.Serverless.SampleAdapter3\SW.Serverless.SampleAdapter3.csproj", "{0B01CB65-FEAF-4FF1-972F-44D14C066736}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SW.Serverless.SampleAdapter3", "SW.Serverless.SampleAdapter3\SW.Serverless.SampleAdapter3.csproj", "{0B01CB65-FEAF-4FF1-972F-44D14C066736}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
