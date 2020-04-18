@@ -43,8 +43,8 @@ stages:
           nugetConfigPath: 'nuget.config'
 
       - task: DotNetCoreCLI@2
-          displayName: Build
-          inputs:
+        displayName: Build
+        inputs:
           projects: '**/*.csproj'
           arguments: '--configuration $(BuildConfiguration)'
 
