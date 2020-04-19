@@ -36,14 +36,14 @@ namespace SW.Serverless.Installer
 
                 if (!BuildPublish(opts.ProjectPath, tempPath)) return;
 
-                var zipFileName = Path.Combine(tempPath, $"{opts.AdapterName}");
+                var zipFileName = Path.Combine(tempPath, $"{opts.AdapterId}");
 
                 if (!Compress(tempPath, zipFileName)) return;
 
                 var projectFileName = Path.GetFileName(opts.ProjectPath);
                 var entryAssembly = $"{projectFileName.Remove(projectFileName.LastIndexOf('.'))}.dll";
 
-                if (!PushToCloud(zipFileName, opts.AdapterName, entryAssembly, opts.AccessKeyId, opts.SecretAccessKey, opts.ServiceUrl, opts.BucketName)) return;
+                if (!PushToCloud(zipFileName, opts.AdapterId, entryAssembly, opts.AccessKeyId, opts.SecretAccessKey, opts.ServiceUrl, opts.BucketName)) return;
 
                 if (!Cleanup(tempPath)) return;
 
@@ -125,7 +125,7 @@ namespace SW.Serverless.Installer
 
         static bool PushToCloud(
             string zipFielPath,
-            string adapterName,
+            string adapterId,
             string entryAssembly,
             string accessKeyId,
             string secretAccessKey,
@@ -152,7 +152,7 @@ namespace SW.Serverless.Installer
                 cloudService.WriteAsync(zipFileStream, new WriteFileSettings
                 {
                     ContentType = "application/zip",
-                    Key = $"adapters/{adapterName}".ToLower(),
+                    Key = $"adapters/{adapterId}".ToLower(),
                     Metadata = new Dictionary<string, string>
                         {
                             {"EntryAssembly", entryAssembly},

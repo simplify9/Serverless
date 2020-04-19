@@ -25,7 +25,7 @@ namespace SW.Serverless.Installer
         [Value(0, Required = true, HelpText = "Path to project file (csproj)")]
         public string ProjectPath { get; set; }
 
-        [Value(1, Required = true, HelpText = "Adapter name")]
-        public string AdapterName { get; set; }
+        [Value(1, Required = true, HelpText = "Adapter Id")]
+        public string AdapterId { get; set; }
     }
 }
