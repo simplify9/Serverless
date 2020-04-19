@@ -17,11 +17,62 @@ variables:
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
   tag: '$(Build.BuildId)'
   k8sServiceConnection: 'k8s-s9'
+  buildConfiguration: 'Release'
 
     
 stages:
+
+- stage: Nuget
+  displayName: Nuget build and push 
+  jobs:
+  - job: build
+    displayName: build and push image
+    steps:
+      - task: UseDotNet@2
+        displayName: 'Use .NET Core sdk 3.1.201'
+        inputs:
+          packageType: sdk
+          version: 3.1.201
+          installationPath: $(Agent.ToolsDirectory)/dotnet
+
+      - task: DotNetCoreCLI@2
+        displayName: Restore
+        inputs:
+          command: 'restore'
+          projects: '**/*.csproj'
+          feedsToUse: 'config'
+          nugetConfigPath: 'nuget.config'
+
+      - task: DotNetCoreCLI@2
+        displayName: Build
+        inputs:
+          projects: '**/*.csproj'
+          arguments: '--configuration $(BuildConfiguration)'
+
+      - task: DotNetCoreCLI@2
+        displayName: 'dotnet test'
+        inputs:
+          command: test
+          projects: '**/*Tests/*.csproj'
+
+      - task: DotNetCoreCLI@2
+        displayName: 'dotnet pack'
+        inputs:
+          command: pack
+          packagesToPack: 'SW.Serverless/SW.Serverless.csproj;SW.Serverless.Sdk/SW.Serverless.Sdk.csproj;'
+          nobuild: true
+          versioningScheme: byBuildNumber
+
+      - task: DotNetCoreCLI@2
+        displayName: 'dotnet push'
+        inputs:
+          command: push
+          publishVstsFeed: 'e5fb2e9c-1207-48a4-8f7b-2e6b32308210'
+
+
 - stage: Build
   displayName: Build and push image
+  dependsOn: Nuget
   jobs:
   - job: build
     displayName: build and push image
@@ -57,6 +108,7 @@ stages:
 
 - stage: Dev
   displayName: Deploy to dev
+  dependsOn: Build
   jobs:
     - deployment: Dev
       displayName: Deploy to dev

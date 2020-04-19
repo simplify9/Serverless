@@ -12,7 +12,7 @@ namespace SW.Serverless.Sdk
         }
         public static void LogError(Exception exception, string message)
         {
-            Console.Error.WriteLine($"{Constants.LogErrorIdentifier}{message}{Constants.Delimiter}{exception?.ToString()}{Constants.Delimiter}".Replace("\n", Constants.NewLineIdentifier));
+            Console.Error.WriteLine($"{Constants.LogErrorIdentifier}{message}{Constants.Delimiter}{exception?.ToString()}{Constants.Delimiter}".Replace("\n", Constants.NewLineIdentifier).Replace("\r", ""));
         }
 
         public static void LogWarning(string message)
@@ -21,7 +21,7 @@ namespace SW.Serverless.Sdk
         }
         public static void LogWarning(Exception exception, string message)
         {
-            Console.Error.WriteLine($"{Constants.LogWarningIdentifier}{message}{Constants.Delimiter}{exception?.ToString()}{Constants.Delimiter}".Replace("\n", Constants.NewLineIdentifier));
+            Console.Error.WriteLine($"{Constants.LogWarningIdentifier}{message}{Constants.Delimiter}{exception?.ToString()}{Constants.Delimiter}".Replace("\n", Constants.NewLineIdentifier).Replace("\r", ""));
         }
 
         public static void LogInformation(string message)
@@ -30,7 +30,7 @@ namespace SW.Serverless.Sdk
         }
         public static void LogInformation(Exception exception, string message)
         {
-            Console.Error.WriteLine($"{Constants.LogInformationIdentifier}{message}{Constants.Delimiter}{exception?.ToString()}{Constants.Delimiter}".Replace("\n", Constants.NewLineIdentifier));
+            Console.Error.WriteLine($"{Constants.LogInformationIdentifier}{message}{Constants.Delimiter}{exception?.ToString()}{Constants.Delimiter}".Replace("\n", Constants.NewLineIdentifier).Replace("\r", ""));
         }
 
 

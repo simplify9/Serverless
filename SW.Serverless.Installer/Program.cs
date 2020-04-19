@@ -95,14 +95,18 @@ namespace SW.Serverless.Installer
             {
                 Console.WriteLine("Compressing files...");
 
-                var filesToCompress = Directory.GetFiles(path);
+                var filesToCompress = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
 
                 {
                     using var stream = File.OpenWrite(zipFileName);
                     using var archive = new ZipArchive(stream, ZipArchiveMode.Create);
 
                     foreach (var file in filesToCompress)
-                        archive.CreateEntryFromFile(file, Path.GetFileName(file));
+                    {
+                        var entryName = Path.GetRelativePath(path, file);
+                        archive.CreateEntryFromFile(file, entryName);
+                    }
+
                 }
 
                 Console.WriteLine("Compressing files succeeded.");

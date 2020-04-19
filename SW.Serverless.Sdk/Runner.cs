@@ -22,9 +22,11 @@ namespace SW.Serverless.Sdk
                 Console.InputEncoding = Encoding.UTF8;
                 Console.OutputEncoding = Encoding.UTF8;
 
-                var idleTimeout = int.Parse(Environment.GetCommandLineArgs()[1]);
-                AdapterLogger.LogInformation($"Idle timeout: {idleTimeout}s.");
+                var commanLineArgs = Environment.GetCommandLineArgs();
+                if (commanLineArgs.Length <= 1 || !int.TryParse(commanLineArgs[1], out int idleTimeout))
+                    idleTimeout = 300;
 
+                AdapterLogger.LogInformation($"Idle timeout: {idleTimeout}s.");
 
                 var methodsDictionary = new Dictionary<string, HandlerMethodInfo>(StringComparer.OrdinalIgnoreCase);
 
@@ -126,7 +128,7 @@ namespace SW.Serverless.Sdk
                             if (result == null)
                                 result = Constants.NullIdentifier;
 
-                            await Console.Out.WriteLineAsync($"{Constants.Delimiter}{result.Replace("\n", Constants.NewLineIdentifier)}{Constants.Delimiter}");
+                            await Console.Out.WriteLineAsync($"{Constants.Delimiter}{result.Replace("\n", Constants.NewLineIdentifier).Replace("\r", "")}{Constants.Delimiter}");
                         }
 
                         else
@@ -134,7 +136,7 @@ namespace SW.Serverless.Sdk
                     }
                     catch (Exception ex)
                     {
-                        await Console.Out.WriteLineAsync($"{Constants.ErrorIdentifier}{ex.ToString().Replace("\n", Constants.NewLineIdentifier)}");
+                        await Console.Out.WriteLineAsync($"{Constants.ErrorIdentifier}{ex.ToString().Replace("\n", Constants.NewLineIdentifier).Replace("\r", "")}");
                     }
                 };
 
