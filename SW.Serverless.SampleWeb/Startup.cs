@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SW.PrimitiveTypes;
 
 namespace SW.Serverless.SampleWeb
 {
@@ -28,10 +29,13 @@ namespace SW.Serverless.SampleWeb
             services.AddControllers();
             services.AddServerless(config =>
             {
-                config.AccessKeyId = "R3LNFRKWMAC4OCCRICS5";
-                config.SecretAccessKey = "YPyyTdxs+lZMQEtYIDRK9lkIzjJrCKXinE3OfKEfc7k";
-                config.ServiceUrl = "https://fra1.digitaloceanspaces.com";
-                config.BucketName = "sf9";
+                config.CloudFilesOptions = new CloudFilesOptions
+                {
+                    AccessKeyId = "R3LNFRKWMAC4OCCRICS5",
+                    SecretAccessKey = "YPyyTdxs+lZMQEtYIDRK9lkIzjJrCKXinE3OfKEfc7k",
+                    ServiceUrl = "https://fra1.digitaloceanspaces.com",
+                    BucketName = "sf9"
+                };
                 config.AdapterMetadataCacheDuration = 1;
                 //config.IdleTimeout
 

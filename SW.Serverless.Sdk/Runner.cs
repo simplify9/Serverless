@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using SW.PrimitiveTypes;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,7 +13,8 @@ namespace SW.Serverless.Sdk
 {
     public sealed class Runner
     {
-        public static AdapterConfig Config { get; } = new AdapterConfig(Environment.GetCommandLineArgs());
+        public static ServerlessOptions ServerlessOptions { get; private set; }
+        public static IReadOnlyDictionary<string, string> StartupValues { get; private set; }
 
         async public static Task Run(object commandHandler)
         {
@@ -21,12 +24,28 @@ namespace SW.Serverless.Sdk
             {
                 Console.InputEncoding = Encoding.UTF8;
                 Console.OutputEncoding = Encoding.UTF8;
+                var commandLineArgs = Environment.GetCommandLineArgs();
 
-                var commanLineArgs = Environment.GetCommandLineArgs();
-                if (commanLineArgs.Length <= 1 || !int.TryParse(commanLineArgs[1], out int idleTimeout))
-                    idleTimeout = 300;
+                try
+                {
+                    ServerlessOptions = JsonConvert.DeserializeObject<ServerlessOptions>(Encoding.UTF8.GetString(Convert.FromBase64String(commandLineArgs[1])));
+                }
+                catch (Exception ex)
+                {
+                    AdapterLogger.LogWarning(ex, $"Failed to parse ServerlessOptions, using defaults instead.");
+                    ServerlessOptions = new ServerlessOptions();
+                }
 
-                AdapterLogger.LogInformation($"Idle timeout: {idleTimeout}s.");
+                try
+                {
+                    StartupValues = new Dictionary<string, string>(JsonConvert.DeserializeObject<IDictionary<string, string>>(Encoding.UTF8.GetString(Convert.FromBase64String(commandLineArgs[2]))), StringComparer.OrdinalIgnoreCase);
+                }
+                catch (Exception ex)
+                {
+                    AdapterLogger.LogWarning(ex, $"Failed to parse StartupValues.");
+                }
+
+
 
                 var methodsDictionary = new Dictionary<string, HandlerMethodInfo>(StringComparer.OrdinalIgnoreCase);
 
@@ -84,7 +103,7 @@ namespace SW.Serverless.Sdk
                             throw new TimeoutException("Timed out waiting for command.");
                         },
                         state: null,
-                        dueTime: TimeSpan.FromSeconds(idleTimeout),
+                        dueTime: TimeSpan.FromSeconds(ServerlessOptions.IdleTimeout),
                         period: Timeout.InfiniteTimeSpan);
 
                     var input = await Console.In.ReadLineAsync();

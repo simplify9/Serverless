@@ -30,8 +30,12 @@ namespace SW.Serverless.SampleWeb.Controllers
             using var stream = new StreamReader(Request.Body);
 
             var serverless = serviceProvider.GetService<IServerlessService>();
+            var startupValues = new Dictionary<string, string>
+            {
+                {"key1","val12345" }
+            };
 
-            await serverless.StartAsync(adapterId, @"C:\Users\Samer Awajan\source\repos\Serverless\SW.Serverless.SampleAdapter2\bin\Debug\netcoreapp3.1\SW.Serverless.SampleAdapter2.dll");
+            await serverless.StartAsync(adapterId, @"C:\Users\Samer Awajan\source\repos\Serverless\SW.Serverless.SampleAdapter2\bin\Debug\netcoreapp3.1\SW.Serverless.SampleAdapter2.dll", startupValues);
             var input = await stream.ReadToEndAsync();
 
             var result = await serverless.InvokeAsync(method, null);
