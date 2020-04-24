@@ -1,4 +1,5 @@
-﻿using SW.Serverless.Sdk;
+﻿using Newtonsoft.Json;
+using SW.Serverless.Sdk;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,8 +17,8 @@ namespace SW.Serverless.SampleAdapter2
         async public Task<string> TestString(string input)
         {
             //await Task.Delay(TimeSpan.FromSeconds(40));
-            
-            return input;
+
+            return JsonConvert.SerializeObject(Runner.AdapterValues);
         }
 
         async public Task<string> Test3()

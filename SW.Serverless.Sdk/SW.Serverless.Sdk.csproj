@@ -7,4 +7,9 @@
     <Product>SimplyWorks.Serverless.Sdk</Product>    
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="SimplyWorks.PrimitiveTypes" Version="2020.4.24.3" />
+  </ItemGroup>
+
 </Project>

@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using SW.CloudFiles;
 using SW.PrimitiveTypes;
 using SW.Serverless.Sdk;
@@ -22,7 +24,7 @@ namespace SW.Serverless
         private readonly IMemoryCache memoryCache;
         private readonly ILoggerFactory loggerFactory;
         private readonly ILogger<ServerlessService> logger;
-        private readonly CloudFilesOptions cloudFilesOptions;
+        //private readonly CloudFilesOptions cloudFilesOptions;
         private Process process;
         private TaskCompletionSource<string> taskCompletionSource;
         private Timer invocationTimeoutTimer;
@@ -31,7 +33,7 @@ namespace SW.Serverless
 
 
 
-        public ServerlessService(ServerlessOptions serverlessOptions, IMemoryCache memoryCache, ILoggerFactory loggerFactory)
+        public ServerlessService(ServerlessOptions serverlessOptions, IMemoryCache memoryCache, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
         {
             this.serverlessOptions = serverlessOptions;
             this.memoryCache = memoryCache;
@@ -39,44 +41,59 @@ namespace SW.Serverless
 
             logger = loggerFactory.CreateLogger<ServerlessService>();
 
-            cloudFilesOptions = new CloudFilesOptions
+            if (serverlessOptions.CloudFilesOptions == null)
             {
-                AccessKeyId = serverlessOptions.AccessKeyId,
-                BucketName = serverlessOptions.BucketName,
-                SecretAccessKey = serverlessOptions.SecretAccessKey,
-                ServiceUrl = serverlessOptions.ServiceUrl
+                serverlessOptions.CloudFilesOptions = serviceProvider.GetService<CloudFilesOptions>();
+            }
 
-            };
-
+            //cloudFilesOptions = serverlessOptions.CloudFilesOptions;
         }
 
         //var adapterpath = @"C:\Users\Samer Awajan\source\repos\Serverless\SW.Serverless.SampleAdapter2\bin\Debug\netcoreapp3.1\SW.Serverless.SampleAdapter2.dll";
 
-        async public Task StartAsync(string adapterId, string[] arguments = null)
+        async public Task StartAsync(string adapterId, IDictionary<string, string> startupValues = null)
         {
             if (string.IsNullOrWhiteSpace(adapterId) || adapterId.Contains(' '))
             {
                 throw new ArgumentException("Invalid name.", nameof(adapterId));
             }
 
-            var adapterpath = await Install(adapterId);
+            var adapterMetadata = await Install(adapterId);
 
-            await StartAsync(adapterId, adapterpath, arguments);
+            await StartAsync(adapterId, adapterMetadata, startupValues);
         }
 
-        public Task StartAsync(string adapterId, string adapterPath, string[] arguments = null)
+        async public Task StartAsync(string adapterId, string adapterPath, IDictionary<string, string> startupValues = null)
+        {
+            var fakeMetadata = new AdapterMetadata
+            {
+                LocalPath = adapterPath
+            };
+
+            await StartAsync(adapterId, fakeMetadata, startupValues);
+
+        }
+
+        Task StartAsync(string adapterId, AdapterMetadata adapterMetadata, IDictionary<string, string> startupValues = null)
         {
             if (processStarted)
                 throw new Exception("Already started.");
 
+            if (startupValues == null) startupValues = new Dictionary<string, string>();
+
             adapterLogger = loggerFactory.CreateLogger($"{adaptersNamingPrefix}.{adapterId}".ToLower());
+
+
+            var startupValuesBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(startupValues)));
+            var serverlessOptionsBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(serverlessOptions)));
+            var adapterValuesBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(adapterMetadata.AdapterValues)));
 
             process = new Process
             {
                 StartInfo = new ProcessStartInfo("dotnet")
                 {
-                    Arguments = $"\"{adapterPath}\" {serverlessOptions.IdleTimeout}",
-                    WorkingDirectory = Path.GetDirectoryName(adapterPath),
+                    Arguments = $"\"{adapterMetadata.LocalPath}\" {serverlessOptionsBase64} {startupValuesBase64} {adapterValuesBase64}",
+                    WorkingDirectory = Path.GetDirectoryName(adapterMetadata.LocalPath),
                     UseShellExecute = false,
 
                     RedirectStandardInput = true,
@@ -202,11 +219,11 @@ namespace SW.Serverless
                 taskCompletionSource.TrySetResult(outputDenormalized);
         }
 
-        async Task<string> Install(string adapterId)
+        async Task<AdapterMetadata> Install(string adapterId)
         {
-            var adapterConfig = await GetAdapterMetadata(adapterId);
-            var adapterDiretoryPath = $"{serverlessOptions.AdapterLocalPath}/{adapterConfig.Hash}";
-            var adapterPath = Path.GetFullPath($"{adapterDiretoryPath}/{adapterConfig.EntryAssembly}");
+            var adapterMetadata = await GetAdapterMetadata(adapterId);
+            var adapterDiretoryPath = $"{serverlessOptions.AdapterLocalPath}/{adapterMetadata.Hash}";
+            //var adapterPath = Path.GetFullPath($"{adapterDiretoryPath}/{adapterConfig.EntryAssembly}");
 
             await semaphoreSlim.WaitAsync();
             try
@@ -216,7 +233,7 @@ namespace SW.Serverless
                     Directory.CreateDirectory(adapterDiretoryPath);
                     try
                     {
-                        using var cloudFilesService = new CloudFilesService(cloudFilesOptions);
+                        using var cloudFilesService = new CloudFilesService(serverlessOptions.CloudFilesOptions);
                         using var stream = await cloudFilesService.OpenReadAsync($"{serverlessOptions.AdapterRemotePath}/{adapterId}".ToLower());
                         using var archive = new ZipArchive(stream);
 
@@ -237,7 +254,7 @@ namespace SW.Serverless
                 semaphoreSlim.Release();
             }
 
-            return adapterPath;
+            return adapterMetadata;
         }
 
         async Task<AdapterMetadata> GetAdapterMetadata(string adapterId)
@@ -245,14 +262,18 @@ namespace SW.Serverless
             if (memoryCache.TryGetValue($"{adaptersNamingPrefix}.{adapterId}", out AdapterMetadata adapterMetadata))
                 return adapterMetadata;
 
-            using var cloudFilesService = new CloudFilesService(cloudFilesOptions);
+            using var cloudFilesService = new CloudFilesService(serverlessOptions.CloudFilesOptions);
 
             var metaData = await cloudFilesService.GetMetadataAsync($"{serverlessOptions.AdapterRemotePath}/{adapterId}".ToLower());
             adapterMetadata = new AdapterMetadata
             {
                 EntryAssembly = metaData["EntryAssembly"],
-                Hash = metaData["Hash"]
+                Hash = metaData["Hash"],
+                AdapterValues = new Dictionary<string, string>(metaData)
             };
+
+            adapterMetadata.LocalPath = Path.GetFullPath($"{serverlessOptions.AdapterLocalPath}/{adapterMetadata.Hash}/{adapterMetadata.EntryAssembly}");
+
 
             return memoryCache.Set($"{adaptersNamingPrefix}.{adapterId}", adapterMetadata, TimeSpan.FromMinutes(serverlessOptions.AdapterMetadataCacheDuration));
         }
@@ -282,6 +303,14 @@ namespace SW.Serverless
                 logger.LogWarning(ex, "Service did not dispose properly.");
             }
 
+        }
+
+        private class AdapterMetadata
+        {
+            public string Hash { get; set; }
+            public string EntryAssembly { get; set; }
+            public string LocalPath { get; set; }
+            public IDictionary<string, string> AdapterValues { get; set; } = new Dictionary<string, string>();
         }
     }
 }
