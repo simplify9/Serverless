@@ -18,7 +18,7 @@ namespace SW.Serverless.SampleAdapter2
         {
             //await Task.Delay(TimeSpan.FromSeconds(40));
 
-            return JsonConvert.SerializeObject(Runner.StartupValues);
+            return JsonConvert.SerializeObject(Runner.AdapterValues);
         }
 
         async public Task<string> Test3()

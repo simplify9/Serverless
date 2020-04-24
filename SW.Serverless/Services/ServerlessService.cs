@@ -58,12 +58,23 @@ namespace SW.Serverless
                 throw new ArgumentException("Invalid name.", nameof(adapterId));
             }
 
-            var adapterpath = await Install(adapterId);
+            var adapterMetadata = await Install(adapterId);
 
-            await StartAsync(adapterId, adapterpath, startupValues);
+            await StartAsync(adapterId, adapterMetadata, startupValues);
         }
 
-        public Task StartAsync(string adapterId, string adapterPath, IDictionary<string, string> startupValues = null)
+        async public Task StartAsync(string adapterId, string adapterPath, IDictionary<string, string> startupValues = null)
+        {
+            var fakeMetadata = new AdapterMetadata
+            {
+                LocalPath = adapterPath
+            };
+
+            await StartAsync(adapterId, fakeMetadata, startupValues);
+
+        }
+
+        Task StartAsync(string adapterId, AdapterMetadata adapterMetadata, IDictionary<string, string> startupValues = null)
         {
             if (processStarted)
                 throw new Exception("Already started.");
@@ -75,13 +86,14 @@ namespace SW.Serverless
 
             var startupValuesBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(startupValues)));
             var serverlessOptionsBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(serverlessOptions)));
+            var adapterValuesBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(adapterMetadata.AdapterValues)));
 
             process = new Process
             {
                 StartInfo = new ProcessStartInfo("dotnet")
                 {
-                    Arguments = $"\"{adapterPath}\" {serverlessOptionsBase64} {startupValuesBase64}",
-                    WorkingDirectory = Path.GetDirectoryName(adapterPath),
+                    Arguments = $"\"{adapterMetadata.LocalPath}\" {serverlessOptionsBase64} {startupValuesBase64} {adapterValuesBase64}",
+                    WorkingDirectory = Path.GetDirectoryName(adapterMetadata.LocalPath),
                     UseShellExecute = false,
 
                     RedirectStandardInput = true,
@@ -207,11 +219,11 @@ namespace SW.Serverless
                 taskCompletionSource.TrySetResult(outputDenormalized);
         }
 
-        async Task<string> Install(string adapterId)
+        async Task<AdapterMetadata> Install(string adapterId)
         {
-            var adapterConfig = await GetAdapterMetadata(adapterId);
-            var adapterDiretoryPath = $"{serverlessOptions.AdapterLocalPath}/{adapterConfig.Hash}";
-            var adapterPath = Path.GetFullPath($"{adapterDiretoryPath}/{adapterConfig.EntryAssembly}");
+            var adapterMetadata = await GetAdapterMetadata(adapterId);
+            var adapterDiretoryPath = $"{serverlessOptions.AdapterLocalPath}/{adapterMetadata.Hash}";
+            //var adapterPath = Path.GetFullPath($"{adapterDiretoryPath}/{adapterConfig.EntryAssembly}");
 
             await semaphoreSlim.WaitAsync();
             try
@@ -242,7 +254,7 @@ namespace SW.Serverless
                 semaphoreSlim.Release();
             }
 
-            return adapterPath;
+            return adapterMetadata;
         }
 
         async Task<AdapterMetadata> GetAdapterMetadata(string adapterId)
@@ -256,8 +268,12 @@ namespace SW.Serverless
             adapterMetadata = new AdapterMetadata
             {
                 EntryAssembly = metaData["EntryAssembly"],
-                Hash = metaData["Hash"]
+                Hash = metaData["Hash"],
+                AdapterValues = new Dictionary<string, string>(metaData)
             };
+
+            adapterMetadata.LocalPath = Path.GetFullPath($"{serverlessOptions.AdapterLocalPath}/{adapterMetadata.Hash}/{adapterMetadata.EntryAssembly}");
+
 
             return memoryCache.Set($"{adaptersNamingPrefix}.{adapterId}", adapterMetadata, TimeSpan.FromMinutes(serverlessOptions.AdapterMetadataCacheDuration));
         }
@@ -293,6 +309,8 @@ namespace SW.Serverless
         {
             public string Hash { get; set; }
             public string EntryAssembly { get; set; }
+            public string LocalPath { get; set; }
+            public IDictionary<string, string> AdapterValues { get; set; } = new Dictionary<string, string>();
         }
     }
 }

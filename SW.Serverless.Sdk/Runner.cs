@@ -15,6 +15,7 @@ namespace SW.Serverless.Sdk
     {
         public static ServerlessOptions ServerlessOptions { get; private set; }
         public static IReadOnlyDictionary<string, string> StartupValues { get; private set; }
+        public static IReadOnlyDictionary<string, string> AdapterValues { get; private set; }
 
         async public static Task Run(object commandHandler)
         {
@@ -45,7 +46,14 @@ namespace SW.Serverless.Sdk
                     AdapterLogger.LogWarning(ex, $"Failed to parse StartupValues.");
                 }
 
-
+                try
+                {
+                    AdapterValues = new Dictionary<string, string>(JsonConvert.DeserializeObject<IDictionary<string, string>>(Encoding.UTF8.GetString(Convert.FromBase64String(commandLineArgs[3]))), StringComparer.OrdinalIgnoreCase);
+                }
+                catch (Exception ex)
+                {
+                    AdapterLogger.LogWarning(ex, $"Failed to parse AdapterValues.");
+                }
 
                 var methodsDictionary = new Dictionary<string, HandlerMethodInfo>(StringComparer.OrdinalIgnoreCase);
 
