@@ -69,36 +69,34 @@ namespace SW.Serverless.Sdk
                     {
                         MethodInfo = m,
                         Void = true,
-                        Parameterless = true
 
                     }));
 
-                methods.Where(m => m.ReturnType == typeof(Task) && m.GetParameters().Length == 1 && m.GetParameters()[0].ParameterType == typeof(string)).
+                methods.Where(m => m.ReturnType == typeof(Task) && m.GetParameters().Length == 1).
                     ToList().
                     ForEach(m => methodsDictionary.Add(m.Name, new HandlerMethodInfo
                     {
                         MethodInfo = m,
                         Void = true,
-                        Parameterless = false
+                        ParameterType = m.GetParameters()[0].ParameterType
 
                     }));
 
-                methods.Where(m => m.ReturnType == typeof(Task<string>) && m.GetParameters().Length == 0).
+                methods.Where(m => m.ReturnType == typeof(Task<object>) && m.GetParameters().Length == 0).
                     ToList().
                     ForEach(m => methodsDictionary.Add(m.Name, new HandlerMethodInfo
                     {
                         MethodInfo = m,
                         Void = false,
-                        Parameterless = true
                     }));
 
-                methods.Where(m => m.ReturnType == typeof(Task<string>) && m.GetParameters().Length == 1 && m.GetParameters()[0].ParameterType == typeof(string)).
+                methods.Where(m => m.ReturnType == typeof(Task<object>) && m.GetParameters().Length == 1).
                     ToList().
                     ForEach(m => methodsDictionary.Add(m.Name, new HandlerMethodInfo
                     {
                         MethodInfo = m,
                         Void = false,
-                        Parameterless = false
+                        ParameterType = m.GetParameters()[0].ParameterType
                     }));
 
                 while (true)
@@ -128,34 +126,49 @@ namespace SW.Serverless.Sdk
                         if (inputSegments.Length != 4)
                             throw new Exception("Wrong data format.");
 
-                        string result = Constants.NullIdentifier;
+                        object result = null;
 
                         if (methodsDictionary.TryGetValue(inputSegments[1], out var handlerMethodInfo))
                         {
-                            string inputDenormalized = null;
+                            //string inputDenormalized = null;
+                            object inputTyped = null;
 
-                            if (inputSegments[2] != Constants.NullIdentifier)
-                                inputDenormalized = inputSegments[2].Replace(Constants.NewLineIdentifier, "\n");
+                            if (inputSegments[2] != Constants.NullIdentifier && handlerMethodInfo.ParameterType != null)
+                            {
+                                var inputDenormalized = inputSegments[2].Replace(Constants.NewLineIdentifier, "\n");
+                                if (handlerMethodInfo.ParameterType == typeof(string))
+                                    inputTyped = inputDenormalized;
+                                else if (handlerMethodInfo.ParameterType.IsPrimitive)
+                                    inputTyped = Convert.ChangeType(inputDenormalized, handlerMethodInfo.ParameterType);
+                                else
+                                    inputTyped = JsonConvert.DeserializeObject(inputDenormalized, handlerMethodInfo.ParameterType);
+                            }
 
                             if (handlerMethodInfo.Void)
                             {
-                                if (handlerMethodInfo.Parameterless)
+                                if (handlerMethodInfo.ParameterType == null)
                                     await (Task)handlerMethodInfo.MethodInfo.Invoke(commandHandler, null);
                                 else
-                                    await (Task)handlerMethodInfo.MethodInfo.Invoke(commandHandler, new object[] { inputDenormalized });
+                                    await (Task)handlerMethodInfo.MethodInfo.Invoke(commandHandler, new object[] { inputTyped });
                             }
                             else
                             {
-                                if (handlerMethodInfo.Parameterless)
-                                    result = await (Task<string>)handlerMethodInfo.MethodInfo.Invoke(commandHandler, null);
+                                if (handlerMethodInfo.ParameterType == null)
+                                    result = await (Task<object>)handlerMethodInfo.MethodInfo.Invoke(commandHandler, null);
                                 else
-                                    result = await (Task<string>)handlerMethodInfo.MethodInfo.Invoke(commandHandler, new object[] { inputDenormalized });
+                                    result = await (Task<object>)handlerMethodInfo.MethodInfo.Invoke(commandHandler, new object[] { inputTyped });
                             }
 
-                            if (result == null)
-                                result = Constants.NullIdentifier;
+                            string resultString = null;
 
-                            await Console.Out.WriteLineAsync($"{Constants.Delimiter}{result.Replace("\n", Constants.NewLineIdentifier).Replace("\r", "")}{Constants.Delimiter}");
+                            if (result == null)
+                                resultString = Constants.NullIdentifier;
+                            else if (result.GetType() == typeof(string) || result.GetType().IsPrimitive)
+                                resultString = result.ToString();
+                            else
+                                resultString = JsonConvert.SerializeObject(result);
+
+                            await Console.Out.WriteLineAsync($"{Constants.Delimiter}{resultString.Replace("\n", Constants.NewLineIdentifier).Replace("\r", "")}{Constants.Delimiter}");
                         }
 
                         else

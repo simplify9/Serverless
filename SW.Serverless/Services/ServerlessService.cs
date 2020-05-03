@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using Amazon.S3.Model.Internal.MarshallTransformations;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -10,6 +11,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,7 +28,9 @@ namespace SW.Serverless
         private readonly ILogger<ServerlessService> logger;
         //private readonly CloudFilesOptions cloudFilesOptions;
         private Process process;
-        private TaskCompletionSource<string> taskCompletionSource;
+        private object taskCompletionSource;
+        private MethodInfo trySetResultMethod;
+        private MethodInfo trySetTrySetExceptionMethod;
         private Timer invocationTimeoutTimer;
         private bool processStarted;
         private ILogger adapterLogger;
@@ -65,6 +69,9 @@ namespace SW.Serverless
 
         async public Task StartAsync(string adapterId, string adapterPath, IDictionary<string, string> startupValues = null)
         {
+            if (!File.Exists(adapterPath))
+                throw new FileNotFoundException(adapterPath);
+
             var fakeMetadata = new AdapterMetadata
             {
                 LocalPath = adapterPath
@@ -120,22 +127,14 @@ namespace SW.Serverless
             return Task.CompletedTask;
         }
 
-        async public Task InvokeVoidAsync(string command, string input = null)
+        async public Task InvokeAsync(string command, object input, int commandTimeout = 0)
         {
-            await InvokeAsync(command, serverlessOptions.CommandTimeout, input);
+            await InvokeAsync<NoT>(command, input, commandTimeout);
         }
 
-        async public Task InvokeVoidAsync(string command, int commandTimeout, string input = null)
+        async public Task<TResult> InvokeAsync<TResult>(string command, object input, int commandTimeout = 0)
         {
-            await InvokeAsync(command, commandTimeout, input);
-        }
-
-        async public Task<string> InvokeAsync(string command, string input = null)
-        {
-            return await InvokeAsync(command, serverlessOptions.CommandTimeout, input);
-        }
-        async public Task<string> InvokeAsync(string command, int commandTimeout, string input = null)
-        {
+            if (commandTimeout == 0) commandTimeout = serverlessOptions.CommandTimeout;
 
             if (string.IsNullOrWhiteSpace(command) || command.Contains(' '))
             {
@@ -145,7 +144,9 @@ namespace SW.Serverless
             if (!processStarted || process.HasExited)
                 throw new Exception("Process not started or terminated.");
 
-            taskCompletionSource = new TaskCompletionSource<string>();
+            taskCompletionSource = new TaskCompletionSource<TResult>();
+            trySetResultMethod = taskCompletionSource.GetType().GetMethod("TrySetResult");
+            trySetTrySetExceptionMethod = taskCompletionSource.GetType().GetMethod("TrySetException", new Type[] { typeof(Exception) });
 
             invocationTimeoutTimer = new Timer(
                 callback: InvocationTimeoutTimerCallback,
@@ -153,17 +154,25 @@ namespace SW.Serverless
                 dueTime: TimeSpan.FromSeconds(commandTimeout),
                 period: Timeout.InfiniteTimeSpan);
 
-            if (input == null) input = Constants.NullIdentifier;
+            string inputString;
 
-            await process.StandardInput.WriteLineAsync($"{Constants.Delimiter}{command}{Constants.Delimiter}{input}{Constants.Delimiter}".Replace("\n", Constants.NewLineIdentifier));
+            if (input == null)
+                inputString = Constants.NullIdentifier;
+            else if (input.GetType() == typeof(string) || input.GetType().IsPrimitive)
+                inputString = input.ToString();
+            else
+                inputString = JsonConvert.SerializeObject(input);
 
-            return await taskCompletionSource.Task;
+
+            await process.StandardInput.WriteLineAsync($"{Constants.Delimiter}{command}{Constants.Delimiter}{inputString}{Constants.Delimiter}".Replace("\n", Constants.NewLineIdentifier));
+
+            return await ((TaskCompletionSource<TResult>)taskCompletionSource).Task;
         }
 
         void InvocationTimeoutTimerCallback(object state)
         {
             invocationTimeoutTimer.Dispose();
-            taskCompletionSource.TrySetException(new TimeoutException());
+            trySetTrySetExceptionMethod.Invoke(taskCompletionSource, new object[] { new TimeoutException() });
         }
 
         void ErrorDataReceived(object sender, DataReceivedEventArgs args)
@@ -191,32 +200,44 @@ namespace SW.Serverless
         {
             invocationTimeoutTimer?.Dispose();
 
-            if (args.Data == null)
+            if (args.Data == null && taskCompletionSource != null)
             {
-                taskCompletionSource?.TrySetException(new Exception("Received null data."));
+                trySetTrySetExceptionMethod.Invoke(taskCompletionSource, new object[] { new Exception("Received null data.") });
                 return;
             }
 
-            if (args.Data.StartsWith(Constants.ErrorIdentifier))
+            if (args.Data.StartsWith(Constants.ErrorIdentifier) && taskCompletionSource != null)
             {
-                taskCompletionSource?.TrySetException(new Exception(args.Data));
+                trySetTrySetExceptionMethod.Invoke(taskCompletionSource, new object[] { new Exception(args.Data) });
                 return;
             }
 
             var outputSegments = args.Data.Split(Constants.Delimiter);
 
-            if (outputSegments.Length != 3)
+            if (outputSegments.Length != 3 && taskCompletionSource != null)
             {
-                taskCompletionSource?.TrySetException(new Exception("Wrong data format."));
+                trySetTrySetExceptionMethod.Invoke(taskCompletionSource, new object[] { new Exception("Wrong data format.") });
                 return;
             }
 
             var outputDenormalized = outputSegments[1].Replace(Constants.NewLineIdentifier, "\n");
 
+            var returnType = taskCompletionSource.GetType().GetGenericArguments()[0];
+            object resultTyped;
+
             if (outputDenormalized == Constants.NullIdentifier)
-                taskCompletionSource.TrySetResult(null);
+                resultTyped = null;
+            else if (returnType == typeof(string))
+                resultTyped = outputDenormalized;
+            else if (returnType.IsPrimitive)
+                resultTyped = Convert.ChangeType(outputDenormalized, returnType);
+            else if (returnType == typeof(NoT))
+                resultTyped = new NoT();
             else
-                taskCompletionSource.TrySetResult(outputDenormalized);
+                resultTyped = JsonConvert.DeserializeObject(outputDenormalized, returnType);
+
+
+            trySetResultMethod.Invoke(taskCompletionSource, new object[] { resultTyped });
         }
 
         async Task<AdapterMetadata> Install(string adapterId)

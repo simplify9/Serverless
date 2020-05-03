@@ -40,7 +40,7 @@ namespace SW.Serverless.SampleWeb.Controllers
 
             var input = await stream.ReadToEndAsync();
 
-            var result = await serverless.InvokeAsync(method, null);
+            var result = await serverless.InvokeAsync<string>(method, null);
 
             //await Task.Delay(TimeSpan.FromSeconds(30));
             //result = await serverless.InvokeAsync("TestString", input);
