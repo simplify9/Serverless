@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using SW.CloudFiles;
 using SW.PrimitiveTypes;
 using SW.Serverless.Sdk;
 using System;
@@ -41,31 +40,23 @@ namespace SW.Serverless.SampleAdapter2
             throw new NotImplementedException();
         }
 
-        async public Task<object> TestString2(string input)
-        {
-            //await Task.Delay(TimeSpan.FromSeconds(40));
+        //async public Task<object> TestString2(string input)
+        //{
+        //    //await Task.Delay(TimeSpan.FromSeconds(40));
 
-            using var cloudFiles = new CloudFilesService(Runner.ServerlessOptions.CloudFilesOptions);
+        //    using var cloudFiles = new CloudFilesService(Runner.ServerlessOptions.CloudFilesOptions);
 
-            // adapter creates aramex/dhl label based on the input
-            AdapterLogger.LogInformation("hello");
+        //    // adapter creates aramex/dhl label based on the input
+        //    AdapterLogger.LogInformation("hello");
 
-            var rb = await cloudFiles.WriteTextAsync("test from adapter", new WriteFileSettings
-            {
-                Public = true,
-                ContentType = "text/plain",
-                Key = "temp1/testadapteraccess.txt"
-            });
+        //    var rb = await cloudFiles.WriteTextAsync("test from adapter", new WriteFileSettings
+        //    {
+        //        Public = true,
+        //        ContentType = "text/plain",
+        //        Key = "temp1/testadapteraccess.txt"
+        //    });
 
-            return JsonConvert.SerializeObject(rb);
-        }
-
-
-
-
-
-
-
-
+        //    return JsonConvert.SerializeObject(rb);
+        //}
     }
 }

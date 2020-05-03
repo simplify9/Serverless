@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SW.PrimitiveTypes;
 using System.Threading.Tasks;
@@ -17,8 +19,9 @@ namespace SW.Serverless.UnitTests
         [ClassInitialize]
         public static void ClassInitialize(TestContext tcontext)
         {
-            server = new TestServer(new WebHostBuilder()
-                .UseEnvironment("UnitTesting")
+            server = new TestServer(WebHost.CreateDefaultBuilder()
+                .UseDefaultServiceProvider((context, options) => { options.ValidateScopes = true; })
+                .UseEnvironment(Environments.Development)
                 .UseStartup<TestStartup>());
         }
 
@@ -35,7 +38,7 @@ namespace SW.Serverless.UnitTests
         {
             var serverless =  server.Host.Services.GetService<IServerlessService>();
 
-            await serverless.StartAsync("testadapter", "../../../../SW.Serverless.SampleAdapter2/bin/Debug/netcoreapp3.1/SW.Serverless.SampleAdapter2.dll");
+            await serverless.StartAsync("unittests.adapter");
 
             var result = await serverless.InvokeAsync<string>("TestString", "test");
 
@@ -47,7 +50,7 @@ namespace SW.Serverless.UnitTests
         {
             var serverless = server.Host.Services.GetService<IServerlessService>();
 
-            await serverless.StartAsync("testadapter", "../../../../SW.Serverless.SampleAdapter2/bin/Debug/netcoreapp3.1/SW.Serverless.SampleAdapter2.dll");
+            await serverless.StartAsync("unittests.adapter");
 
             var result = await serverless.InvokeAsync<int>("TestInt", 12);
 
@@ -59,7 +62,7 @@ namespace SW.Serverless.UnitTests
         {
             var serverless = server.Host.Services.GetService<IServerlessService>();
 
-            await serverless.StartAsync("testadapter", "../../../../SW.Serverless.SampleAdapter2/bin/Debug/netcoreapp3.1/SW.Serverless.SampleAdapter2.dll");
+            await serverless.StartAsync("unittests.adapter");
 
             var result = await serverless.InvokeAsync<RemoteBlob>("TestObject", new RemoteBlob 
             { 
@@ -79,7 +82,7 @@ namespace SW.Serverless.UnitTests
         {
             var serverless = server.Host.Services.GetService<IServerlessService>();
 
-            await serverless.StartAsync("testadapter", "../../../../SW.Serverless.SampleAdapter2/bin/Debug/netcoreapp3.1/SW.Serverless.SampleAdapter2.dll");
+            await serverless.StartAsync("unittests.adapter");
 
             var result = await serverless.InvokeAsync<RemoteBlob>("TestObject", null);
 
