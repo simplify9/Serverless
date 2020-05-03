@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="SimplyWorks.CloudFiles" Version="2020.4.24.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\SW.Serverless.Sdk\SW.Serverless.Sdk.csproj" />
   </ItemGroup>
 

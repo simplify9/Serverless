@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SW.CloudFiles.Extensions;
 using SW.PrimitiveTypes;
 
 namespace SW.Serverless.SampleWeb
@@ -27,19 +28,21 @@ namespace SW.Serverless.SampleWeb
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddServerless(config =>
-            {
-                config.CloudFilesOptions = new CloudFilesOptions
-                {
-                    AccessKeyId = "R3LNFRKWMAC4OCCRICS5",
-                    SecretAccessKey = "YPyyTdxs+lZMQEtYIDRK9lkIzjJrCKXinE3OfKEfc7k",
-                    ServiceUrl = "https://fra1.digitaloceanspaces.com",
-                    BucketName = "sf9"
-                };
-                config.AdapterMetadataCacheDuration = 1;
-                //config.IdleTimeout
+            services.AddServerless();
+            services.AddCloudFiles();
+            //services.AddServerless(config =>
+            //{
+            //    config.CloudFilesOptions = new CloudFilesOptions
+            //    {
+            //        AccessKeyId = "R3LNFRKWMAC4OCCRICS5",
+            //        SecretAccessKey = "YPyyTdxs+lZMQEtYIDRK9lkIzjJrCKXinE3OfKEfc7k",
+            //        ServiceUrl = "https://fra1.digitaloceanspaces.com",
+            //        BucketName = "sf9"
+            //    };
+            //    config.AdapterMetadataCacheDuration = 1;
+            //    //config.IdleTimeout
 
-            });
+            //});
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="SimplyWorks.PrimitiveTypes" Version="2020.4.24.3" />
+    <PackageReference Include="SimplyWorks.PrimitiveTypes" Version="2020.4.30.2" />
   </ItemGroup>
 
 </Project>
