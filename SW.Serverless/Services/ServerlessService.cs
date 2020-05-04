@@ -326,6 +326,10 @@ namespace SW.Serverless
 
         }
 
+        private class NoT
+        {
+        }
+
         private class AdapterMetadata
         {
             public string Hash { get; set; }

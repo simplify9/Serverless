@@ -70,8 +70,6 @@ namespace SW.Serverless.UnitTests
                 MimeType = "test",
                 Name = "name",
                 Size = 55
-            
-            
             });
 
             Assert.AreEqual("name", result.Name);

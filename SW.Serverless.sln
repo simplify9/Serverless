@@ -16,10 +16,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SW.Serverless", "SW.Serverl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SW.Serverless.Sdk", "SW.Serverless.Sdk\SW.Serverless.Sdk.csproj", "{A9B5B0EB-441D-4942-B4F6-C972278AD375}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SampleAdapters", "SampleAdapters", "{E6A6C529-51DD-4DDE-97C5-4D264F8A905D}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SW.Serverless.SampleAdapter1", "SW.Serverless.SampleAdapter1\SW.Serverless.SampleAdapter1.csproj", "{42A3152F-A5E6-4701-BC35-957003240D92}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SW.Serverless.Installer", "SW.Serverless.Installer\SW.Serverless.Installer.csproj", "{3479F6FE-DEE6-4F24-89DF-23771EEFCFE1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SW.Serverless.UnitTests", "SW.Serverless.UnitTests\SW.Serverless.UnitTests.csproj", "{3590E338-08D5-4C41-9F81-5E9FAAB269C8}"
@@ -44,10 +40,6 @@ Global
 		{A9B5B0EB-441D-4942-B4F6-C972278AD375}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9B5B0EB-441D-4942-B4F6-C972278AD375}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9B5B0EB-441D-4942-B4F6-C972278AD375}.Release|Any CPU.Build.0 = Release|Any CPU
-		{42A3152F-A5E6-4701-BC35-957003240D92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{42A3152F-A5E6-4701-BC35-957003240D92}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{42A3152F-A5E6-4701-BC35-957003240D92}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{42A3152F-A5E6-4701-BC35-957003240D92}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3479F6FE-DEE6-4F24-89DF-23771EEFCFE1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3479F6FE-DEE6-4F24-89DF-23771EEFCFE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3479F6FE-DEE6-4F24-89DF-23771EEFCFE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -63,9 +55,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{42A3152F-A5E6-4701-BC35-957003240D92} = {E6A6C529-51DD-4DDE-97C5-4D264F8A905D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F751DEEC-449B-43AE-A183-7A0274E66317}
