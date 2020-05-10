@@ -34,6 +34,18 @@ namespace SW.Serverless.UnitTests
         //static readonly 
 
         [TestMethod]
+        async public Task TestParameterless()
+        {
+            var serverless = server.Host.Services.GetService<IServerlessService>();
+
+            await serverless.StartAsync("unittests.adapter");
+
+            await serverless.InvokeAsync("TestParameterless", null);
+
+            //Assert.AreEqual("test", result);
+        }
+
+        [TestMethod]
         async public Task TestString()
         {
             var serverless =  server.Host.Services.GetService<IServerlessService>();
