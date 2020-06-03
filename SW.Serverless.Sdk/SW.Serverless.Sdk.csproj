@@ -3,8 +3,10 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <PackageId>SimplyWorks.Serverless.Sdk</PackageId>
-    <Authors>SimplyWorks</Authors>
-    <Product>SimplyWorks.Serverless.Sdk</Product>    
+    <Authors>Simplify9</Authors>
+    <Product>SimplyWorks.Serverless.Sdk</Product>
+    <PackageProjectUrl>https://github.com/simplify9/Serverless</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/simplify9/Serverless</RepositoryUrl>    
   </PropertyGroup>
 
   <ItemGroup>
