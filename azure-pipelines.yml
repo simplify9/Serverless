@@ -14,7 +14,6 @@ variables:
   - name: buildConfiguration
     value: 'Release'
 
-
 steps:
   - task: UseDotNet@2
     displayName: 'Use .NET Core sdk 3.1.201'
@@ -28,8 +27,6 @@ steps:
     inputs:
       command: 'restore'
       projects: '**/*.csproj'
-
-
 
   - task: DotNetCoreCLI@2
     displayName: Build
@@ -54,7 +51,7 @@ steps:
     condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
     inputs:
       command: pack
-      packagesToPack: 'SW.Serverless.Sdk/SW.Serverless.Sdk.csproj;'
+      packagesToPack: 'SW.Serverless/SW.Serverless.csproj;SW.Serverless.Sdk/SW.Serverless.Sdk.csproj;'
       nobuild: true
       versioningScheme: byBuildNumber
 
