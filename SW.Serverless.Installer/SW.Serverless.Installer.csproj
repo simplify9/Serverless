@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.7.82" />
-    <PackageReference Include="SimplyWorks.CloudFiles" Version="2020.4.24.1" />
+    <PackageReference Include="CommandLineParser" Version="2.8.0" />
+    <PackageReference Include="SimplyWorks.CloudFiles" Version="2020.5.30.4" />
 
   </ItemGroup>
 
