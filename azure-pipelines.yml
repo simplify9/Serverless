@@ -10,8 +10,9 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  # Container registry service connection established during pipeline creation
-  buildConfiguration: 'Release'
+  - group: S3Bucket
+  - name: buildConfiguration
+    value: 'Release'
 
 
 steps:
@@ -28,11 +29,19 @@ steps:
       command: 'restore'
       projects: '**/*.csproj'
 
+
+
   - task: DotNetCoreCLI@2
     displayName: Build
     inputs:
       projects: '**/*.csproj'
       arguments: '--configuration $(BuildConfiguration)'
+
+  - task: qetza.replacetokens.replacetokens-task.replacetokens@3
+    displayName: 'Replace tokens'
+    inputs:
+      targetFiles: |
+        **/*.json
 
   - task: DotNetCoreCLI@2
     displayName: 'dotnet test'
