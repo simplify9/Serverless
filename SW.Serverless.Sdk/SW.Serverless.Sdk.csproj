@@ -6,7 +6,8 @@
     <Authors>Simplify9</Authors>
     <Product>SimplyWorks.Serverless.Sdk</Product>
     <PackageProjectUrl>https://github.com/simplify9/Serverless</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/simplify9/Serverless</RepositoryUrl>    
+    <RepositoryUrl>https://github.com/simplify9/Serverless</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>    
   </PropertyGroup>
 
   <ItemGroup>
