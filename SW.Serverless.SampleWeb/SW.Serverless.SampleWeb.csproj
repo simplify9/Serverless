@@ -6,7 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="adapters\" />
+    <Compile Remove="adapters\**" />
+    <Content Remove="adapters\**" />
+    <EmbeddedResource Remove="adapters\**" />
+    <None Remove="adapters\**" />
   </ItemGroup>
 
   <ItemGroup>
