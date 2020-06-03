@@ -13,9 +13,10 @@ namespace SW.Serverless.Sdk
 {
     public sealed class Runner
     {
-        public static ServerlessOptions ServerlessOptions { get; private set; }
-        public static IReadOnlyDictionary<string, string> StartupValues { get; private set; }
-        public static IReadOnlyDictionary<string, string> AdapterValues { get; private set; }
+        public static ServerlessOptions ServerlessOptions { get; set; }
+        public static IReadOnlyDictionary<string, string> StartupValues { get; set; }
+        public static IReadOnlyDictionary<string, string> AdapterValues { get; set; }
+
 
         async public static Task Run(object commandHandler)
         {
