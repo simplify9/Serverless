@@ -3,9 +3,12 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <PackageId>SimplyWorks.Serverless</PackageId>
-    <Authors>SimplyWorks</Authors>
+    <Authors>Simplify9</Authors>
     <Product>SimplyWorks.Serverless</Product>
     <LangVersion>latest</LangVersion>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/simplify9/Serverless</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/simplify9/Serverless</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
