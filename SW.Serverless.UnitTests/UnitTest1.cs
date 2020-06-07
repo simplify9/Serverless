@@ -52,9 +52,9 @@ namespace SW.Serverless.UnitTests
 
             await serverless.StartAsync("unittests.adapter");
 
-            var result = await serverless.InvokeAsync<string>("TestString", "test");
+            var result = await serverless.InvokeAsync<string>("TestString", "test1");
 
-            Assert.AreEqual("test", result);
+            Assert.AreEqual("test1", result);
         }
 
         [TestMethod]
@@ -80,11 +80,11 @@ namespace SW.Serverless.UnitTests
             { 
                 Location = "loc",
                 MimeType = "test",
-                Name = "name",
+                Name = "name1",
                 Size = 55
             });
 
-            Assert.AreEqual("name", result.Name);
+            Assert.AreEqual("name1", result.Name);
         }
 
         [TestMethod]

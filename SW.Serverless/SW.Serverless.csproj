@@ -9,6 +9,9 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/simplify9/Serverless</PackageProjectUrl>
     <RepositoryUrl>https://github.com/simplify9/Serverless</RepositoryUrl>
+    <Copyright>Simplify9</Copyright>
+    <Company>Simplify9</Company>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,6 +26,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SW.Serverless.Sdk\SW.Serverless.Sdk.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="../icon.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 
