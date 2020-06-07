@@ -7,6 +7,9 @@ TODO: Give a short introduction of your project. Let this section explain the ob
 
 [![Build Status](https://dev.azure.com/simplify9/Github%20Pipelines/_apis/build/status/simplify9.Serverless?branchName=master)](https://dev.azure.com/simplify9/Github%20Pipelines/_build/latest?definitionId=156&branchName=master)
 
+[![Unit Tests](https://img.shields.io/azure-devops/tests/simplify9/Github%20Pipelines/156)](https://img.shields.io/azure-devops/tests/simplify9/Github%20Pipelines/156)
+
+
 |         |       |       |
 | ------- | ----- | ----- |
 | `SimplyWorks.Serverless` | [![NuGet](https://img.shields.io/nuget/v/SimplyWorks.Serverless.svg)](https://nuget.org/packages/SimplyWorks.Serverless) | [![Nuget](https://img.shields.io/nuget/dt/SimplyWorks.Serverless.svg)](https://nuget.org/packages/SimplyWorks.Serverless) |
