@@ -13,10 +13,19 @@ namespace SW.Serverless.Sdk
 {
     public sealed class Runner
     {
-        public static ServerlessOptions ServerlessOptions { get; set; }
-        public static IReadOnlyDictionary<string, string> StartupValues { get; set; }
-        public static IReadOnlyDictionary<string, string> AdapterValues { get; set; }
+        public static ServerlessOptions ServerlessOptions { get; private set; }
+        public static IReadOnlyDictionary<string, string> StartupValues { get; private set; }
+        public static IReadOnlyDictionary<string, string> AdapterValues { get; private set; }
 
+        public static void MockRun(object commandHandler, ServerlessOptions serverlessOptions, IReadOnlyDictionary<string, string> startupValues = null, IReadOnlyDictionary<string, string> adapterValues = null)
+        {
+
+            ServerlessOptions = serverlessOptions;
+            StartupValues = startupValues;
+            AdapterValues = adapterValues;
+
+            BuildMethodsDictionary(commandHandler);
+        }
 
         async public static Task Run(object commandHandler)
         {
@@ -56,49 +65,7 @@ namespace SW.Serverless.Sdk
                     AdapterLogger.LogWarning(ex, $"Failed to parse AdapterValues.");
                 }
 
-                var methodsDictionary = new Dictionary<string, HandlerMethodInfo>(StringComparer.OrdinalIgnoreCase);
-
-                var methods = commandHandler.GetType().
-                    GetMethods(BindingFlags.Instance | BindingFlags.Public).
-                    Where(m =>
-                        !m.IsGenericMethod &&
-                        m.GetParameters().Length <= 1).ToList();
-
-                methods.Where(m => m.ReturnType == typeof(Task) && m.GetParameters().Length == 0). //|| (m.ReturnType.IsGenericType && m.ReturnType.GetGenericTypeDefinition() == typeof(Task<>)))).
-                    ToList().
-                    ForEach(m => methodsDictionary.Add(m.Name, new HandlerMethodInfo
-                    {
-                        MethodInfo = m,
-                        Void = true,
-
-                    }));
-
-                methods.Where(m => m.ReturnType == typeof(Task) && m.GetParameters().Length == 1).
-                    ToList().
-                    ForEach(m => methodsDictionary.Add(m.Name, new HandlerMethodInfo
-                    {
-                        MethodInfo = m,
-                        Void = true,
-                        ParameterType = m.GetParameters()[0].ParameterType
-
-                    }));
-
-                methods.Where(m => m.ReturnType == typeof(Task<object>) && m.GetParameters().Length == 0).
-                    ToList().
-                    ForEach(m => methodsDictionary.Add(m.Name, new HandlerMethodInfo
-                    {
-                        MethodInfo = m,
-                        Void = false,
-                    }));
-
-                methods.Where(m => m.ReturnType == typeof(Task<object>) && m.GetParameters().Length == 1).
-                    ToList().
-                    ForEach(m => methodsDictionary.Add(m.Name, new HandlerMethodInfo
-                    {
-                        MethodInfo = m,
-                        Void = false,
-                        ParameterType = m.GetParameters()[0].ParameterType
-                    }));
+                var methodsDictionary = BuildMethodsDictionary(commandHandler);
 
                 while (true)
                 {
@@ -190,6 +157,55 @@ namespace SW.Serverless.Sdk
             {
                 idleTimer?.Dispose();
             }
+        }
+
+        static Dictionary<string, HandlerMethodInfo> BuildMethodsDictionary(object commandHandler)
+        {
+            var methodsDictionary = new Dictionary<string, HandlerMethodInfo>(StringComparer.OrdinalIgnoreCase);
+
+            var methods = commandHandler.GetType().
+                GetMethods(BindingFlags.Instance | BindingFlags.Public).
+                Where(m =>
+                    !m.IsGenericMethod &&
+                    m.GetParameters().Length <= 1).ToList();
+
+            methods.Where(m => m.ReturnType == typeof(Task) && m.GetParameters().Length == 0). //|| (m.ReturnType.IsGenericType && m.ReturnType.GetGenericTypeDefinition() == typeof(Task<>)))).
+                ToList().
+                ForEach(m => methodsDictionary.Add(m.Name, new HandlerMethodInfo
+                {
+                    MethodInfo = m,
+                    Void = true,
+
+                }));
+
+            methods.Where(m => m.ReturnType == typeof(Task) && m.GetParameters().Length == 1).
+                ToList().
+                ForEach(m => methodsDictionary.Add(m.Name, new HandlerMethodInfo
+                {
+                    MethodInfo = m,
+                    Void = true,
+                    ParameterType = m.GetParameters()[0].ParameterType
+
+                }));
+
+            methods.Where(m => m.ReturnType == typeof(Task<object>) && m.GetParameters().Length == 0).
+                ToList().
+                ForEach(m => methodsDictionary.Add(m.Name, new HandlerMethodInfo
+                {
+                    MethodInfo = m,
+                    Void = false,
+                }));
+
+            methods.Where(m => m.ReturnType == typeof(Task<object>) && m.GetParameters().Length == 1).
+                ToList().
+                ForEach(m => methodsDictionary.Add(m.Name, new HandlerMethodInfo
+                {
+                    MethodInfo = m,
+                    Void = false,
+                    ParameterType = m.GetParameters()[0].ParameterType
+                }));
+
+            return methodsDictionary;
         }
     }
 }

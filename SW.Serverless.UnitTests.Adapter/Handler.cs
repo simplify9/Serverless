@@ -17,6 +17,7 @@ namespace SW.Serverless.SampleAdapter2
 
         public Task TestParameterless()
         {
+            
             return Task.CompletedTask;
         }
 
