@@ -198,13 +198,15 @@ namespace SW.Serverless
 
         void OutputDataReceived(object sender, DataReceivedEventArgs args)
         {
-            invocationTimeoutTimer?.Dispose();
+            
 
             if (args.Data == null && taskCompletionSource != null)
             {
-                trySetTrySetExceptionMethod.Invoke(taskCompletionSource, new object[] { new Exception("Received null data.") });
+                //trySetTrySetExceptionMethod.Invoke(taskCompletionSource, new object[] { new Exception("Received null data.") });
                 return;
             }
+
+            invocationTimeoutTimer?.Dispose();
 
             if (args.Data.StartsWith(Constants.ErrorIdentifier) && taskCompletionSource != null)
             {
