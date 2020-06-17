@@ -261,10 +261,10 @@ namespace SW.Serverless
                         foreach (var entry in archive.Entries)
                         {
 
-                            var path = entry.FullName.Replace("\\", "/");
-                            var dirPath = Path.GetDirectoryName($"{adapterDiretoryPath}/{path}");
+                            var path = $"{adapterDiretoryPath}/{entry.FullName.Replace("\\", "/")}";
+                            var dirPath = Path.GetDirectoryName(path);
                             Directory.CreateDirectory(dirPath);
-                            entry.ExtractToFile($"{adapterDiretoryPath}/{path}");
+                            entry.ExtractToFile(path);
                         }
                         
 
