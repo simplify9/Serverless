@@ -259,7 +259,7 @@ namespace SW.Serverless
                         using var archive = new ZipArchive(stream);
 
                         foreach (var entry in archive.Entries)
-                            entry.ExtractToFile($"{adapterDiretoryPath}/{entry.Name}");
+                            entry.ExtractToFile($"{adapterDiretoryPath}/{entry.FullName}");
 
                         //Process.Start("chmod", $"755 {adapterPath}").WaitForExit(5000);
                     }
