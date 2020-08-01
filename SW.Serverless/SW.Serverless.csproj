@@ -20,8 +20,8 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="SimplyWorks.CloudFiles" Version="2020.5.30.4" />
-    <PackageReference Include="SimplyWorks.PrimitiveTypes" Version="2020.6.1.2" />
+    <PackageReference Include="SimplyWorks.CloudFiles" Version="2.0.0" />
+    <PackageReference Include="SimplyWorks.PrimitiveTypes" Version="2.0.4" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,4 @@
-name: $(Year:yyyy).$(Month).$(DayOfMonth)$(Rev:.r)
+name: $(version)
 
 trigger:
 - master
@@ -13,6 +13,13 @@ variables:
   - group: S3Bucket
   - name: buildConfiguration
     value: 'Release'
+  - name: major
+    value: 2
+  - name: minor
+    value: 0
+  - name: version
+    value: $[format('{0}.{1}.{2}', variables['major'], variables['minor'], counter(format('{0}.{1}', variables['major'], variables['minor']), 0))]
+
 
 steps:
   - task: UseDotNet@2
