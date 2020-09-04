@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace SW.Serverless.Sdk
 {
-    public sealed class Runner
+    public static class Runner
     {
         public static ServerlessOptions ServerlessOptions { get; private set; }
         public static IReadOnlyDictionary<string, string> StartupValues { get; private set; }
