@@ -35,9 +35,9 @@ namespace SW.Serverless.SampleWeb.Controllers
                 {"key1","val12345" }
             };
 
-            var path = Path.GetFullPath("./");
+            var path = Path.GetFullPath("../SW.Serverless.UnitTests.Adapter/bin/Debug/netcoreapp3.1/SW.Serverless.UnitTests.Adapter.dll");
 
-            await serverless.StartAsync(adapterId, @"../../../../SW.Serverless.UnitTests.Adapter/bin/Debug/netcoreapp3.1/SW.Serverless.SampleAdapter2.dll", startupValues);
+            await serverless.StartAsync(adapterId, path, startupValues);
             //await serverless.StartAsync(adapterId, startupValues);
 
             var input = await stream.ReadToEndAsync();

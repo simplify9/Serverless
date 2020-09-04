@@ -204,7 +204,7 @@ namespace SW.Serverless.Sdk
 
                 }));
 
-            methods.Where(m => m.ReturnType == typeof(Task<object>) && m.GetParameters().Length == 0).
+            methods.Where(m => m.ReturnType.IsGenericType && m.ReturnType.GetGenericTypeDefinition() == typeof(Task<>) && m.GetParameters().Length == 0).
                 ToList().
                 ForEach(m => methodsDictionary.Add(m.Name, new HandlerMethodInfo
                 {
@@ -212,7 +212,7 @@ namespace SW.Serverless.Sdk
                     Void = false,
                 }));
 
-            methods.Where(m => m.ReturnType == typeof(Task<object>) && m.GetParameters().Length == 1).
+            methods.Where(m => m.ReturnType.IsGenericType && m.ReturnType.GetGenericTypeDefinition() == typeof(Task<>) && m.GetParameters().Length == 1).
                 ToList().
                 ForEach(m => methodsDictionary.Add(m.Name, new HandlerMethodInfo
                 {

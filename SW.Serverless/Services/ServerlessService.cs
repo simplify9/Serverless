@@ -26,7 +26,6 @@ namespace SW.Serverless
         private readonly IMemoryCache memoryCache;
         private readonly ILoggerFactory loggerFactory;
         private readonly ILogger<ServerlessService> logger;
-        //private readonly CloudFilesOptions cloudFilesOptions;
         private Process process;
         private object taskCompletionSource;
         private MethodInfo trySetResultMethod;
@@ -34,8 +33,6 @@ namespace SW.Serverless
         private Timer invocationTimeoutTimer;
         private bool processStarted;
         private ILogger adapterLogger;
-
-
 
         public ServerlessService(ServerlessOptions serverlessOptions, IMemoryCache memoryCache, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
         {
@@ -52,8 +49,6 @@ namespace SW.Serverless
 
             //cloudFilesOptions = serverlessOptions.CloudFilesOptions;
         }
-
-        //var adapterpath = @"C:\Users\Samer Awajan\source\repos\Serverless\SW.Serverless.SampleAdapter2\bin\Debug\netcoreapp3.1\SW.Serverless.SampleAdapter2.dll";
 
         async public Task StartAsync(string adapterId, IDictionary<string, string> startupValues = null)
         {

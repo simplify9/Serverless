@@ -332,3 +332,4 @@ ASALocalRun/
 /SW.Serverless.SampleWeb/adapters
 
 .vscode
+/SW.Serverless.SampleWeb/appsettings.Development.json
