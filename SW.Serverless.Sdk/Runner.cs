@@ -17,6 +17,8 @@ namespace SW.Serverless.Sdk
         public static IReadOnlyDictionary<string, string> StartupValues { get; private set; }
         public static IReadOnlyDictionary<string, string> AdapterValues { get; private set; }
 
+        private static readonly IDictionary<string, StartupValue> expectedStartupValues = new Dictionary<string, StartupValue>(StringComparer.OrdinalIgnoreCase);
+
         public static void MockRun(object commandHandler, ServerlessOptions serverlessOptions, IReadOnlyDictionary<string, string> startupValues = null, IReadOnlyDictionary<string, string> adapterValues = null)
         {
 
@@ -89,16 +91,22 @@ namespace SW.Serverless.Sdk
                         if (input == Constants.QuitCommand) break;
                         if (input == null) continue;
 
+
                         var inputSegments = input.Split(Constants.Delimiter);
 
                         if (inputSegments.Length != 4)
                             throw new Exception("Wrong data format.");
 
-                        object result = null;
+                        if (inputSegments[1] == Constants.ExpectedCommand)
+                        {
+                            var expectedValuesString = JsonConvert.SerializeObject(expectedStartupValues);
+                            await Console.Out.WriteLineAsync($"{Constants.Delimiter}{expectedValuesString.Replace("\n", Constants.NewLineIdentifier).Replace("\r", "")}{Constants.Delimiter}");
+                            continue;
+                        }
 
                         if (methodsDictionary.TryGetValue(inputSegments[1], out var handlerMethodInfo))
                         {
-                            //string inputDenormalized = null;
+                            object result = null;
                             object inputTyped = null;
 
                             if (inputSegments[2] != Constants.NullIdentifier && handlerMethodInfo.ParameterType != null)
@@ -146,7 +154,6 @@ namespace SW.Serverless.Sdk
 
                             await Console.Out.WriteLineAsync($"{Constants.Delimiter}{resultString.Replace("\n", Constants.NewLineIdentifier).Replace("\r", "")}{Constants.Delimiter}");
                         }
-
                         else
                             throw new MissingMethodException(commandHandler.GetType().FullName, inputSegments[1]);
                     }
@@ -222,6 +229,26 @@ namespace SW.Serverless.Sdk
                 }));
 
             return methodsDictionary;
+        }
+
+        public static void Expect(string name, bool optional = false)
+        {
+            Expect(name, null, optional);
+        }
+
+        public static void Expect(string name, string defaultValue)
+        {
+            Expect(name, defaultValue, false);
+        }
+
+        public static void Expect(string name, string defaultValue, bool optional)
+        {
+            expectedStartupValues.TryAdd(name, new StartupValue
+            {
+                Default = defaultValue,
+                Optional = optional,
+                Type = "text"
+            });
         }
     }
 }

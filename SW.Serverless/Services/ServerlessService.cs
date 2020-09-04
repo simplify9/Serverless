@@ -122,6 +122,11 @@ namespace SW.Serverless
             return Task.CompletedTask;
         }
 
+        public Task<IDictionary<string, StartupValue>> GetExpectedStartupValues()
+        {
+            return InvokeAsync<IDictionary<string, StartupValue>>(Constants.ExpectedCommand, null);
+        }
+
         async public Task InvokeAsync(string command, object input, int commandTimeout = 0)
         {
             await InvokeAsync<NoT>(command, input, commandTimeout);
@@ -259,7 +264,7 @@ namespace SW.Serverless
                             Directory.CreateDirectory(Path.GetDirectoryName(path));
                             entry.ExtractToFile(path);
                         }
-                        
+
 
                         //Process.Start("chmod", $"755 {adapterPath}").WaitForExit(5000);
                     }

@@ -11,6 +11,12 @@ namespace SW.Serverless.SampleAdapter2
 {
     class Handler
     {
+        public Handler()
+        {
+            Runner.Expect("UserName", "admin");
+            Runner.Expect("Password");
+        }
+
         public Task TestVoid(string input)
         {
             return Task.CompletedTask;
