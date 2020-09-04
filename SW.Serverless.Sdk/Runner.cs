@@ -121,17 +121,25 @@ namespace SW.Serverless.Sdk
                             }
                             else
                             {
+                                Task task;
                                 if (handlerMethodInfo.ParameterType == null)
-                                    result = await (Task<object>)handlerMethodInfo.MethodInfo.Invoke(commandHandler, null);
+                                {
+                                    task = (Task)handlerMethodInfo.MethodInfo.Invoke(commandHandler, null);
+                                }
                                 else
-                                    result = await (Task<object>)handlerMethodInfo.MethodInfo.Invoke(commandHandler, new object[] { inputTyped });
+                                {
+                                    task = (Task)handlerMethodInfo.MethodInfo.Invoke(commandHandler, new object[] { inputTyped });
+                                }
+                                await task.ConfigureAwait(false);
+                                result = task.GetType().GetProperty(nameof(Task<object>.Result)).GetValue(task);
+
                             }
 
                             string resultString = null;
 
                             if (result == null)
                                 resultString = Constants.NullIdentifier;
-                            else if (result.GetType() == typeof(string) || result.GetType().IsPrimitive)
+                            else if (result.GetType() == typeof(string) || result.GetType().IsPrimitive())
                                 resultString = result.ToString();
                             else
                                 resultString = JsonConvert.SerializeObject(result);
@@ -157,6 +165,14 @@ namespace SW.Serverless.Sdk
             {
                 idleTimer?.Dispose();
             }
+        }
+
+        static bool IsPrimitive(this Type type)
+        {
+            var nakedType = Nullable.GetUnderlyingType(type);
+            if (nakedType != null)
+                type = nakedType;
+            return type.IsPrimitive;
         }
 
         static Dictionary<string, HandlerMethodInfo> BuildMethodsDictionary(object commandHandler)
