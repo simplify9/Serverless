@@ -14,7 +14,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="SimplyWorks.CloudFiles.Extensions" Version="2.0.3" />
+    <PackageReference Include="SimplyWorks.CloudFiles.Extensions" Version="2.0.5" />
 
   </ItemGroup>
 
