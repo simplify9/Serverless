@@ -18,7 +18,7 @@ namespace SW.Serverless.Sdk
         public static IReadOnlyDictionary<string, string> AdapterValues { get; private set; }
 
 
-        public static IReadOnlyDictionary<string, string> startupValues;
+        private static IReadOnlyDictionary<string, string> startupValues;
         private static readonly IDictionary<string, StartupValue> expectedStartupValues = new Dictionary<string, StartupValue>(StringComparer.OrdinalIgnoreCase);
 
         public static void MockRun(object commandHandler, ServerlessOptions serverlessOptions, IReadOnlyDictionary<string, string> startupValues = null, IReadOnlyDictionary<string, string> adapterValues = null)
