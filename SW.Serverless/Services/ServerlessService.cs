@@ -50,7 +50,7 @@ namespace SW.Serverless
             //cloudFilesOptions = serverlessOptions.CloudFilesOptions;
         }
 
-        async public Task StartAsync(string adapterId, IDictionary<string, string> startupValues = null)
+        async public Task StartAsync(string adapterId, string correlationId, IDictionary<string, string> startupValues = null)
         {
             if (string.IsNullOrWhiteSpace(adapterId) || adapterId.Contains(' '))
             {
@@ -59,10 +59,10 @@ namespace SW.Serverless
 
             var adapterMetadata = await Install(adapterId);
 
-            await StartAsync(adapterId, adapterMetadata, startupValues);
+            await StartAsync(adapterId, adapterMetadata, correlationId, startupValues);
         }
 
-        async public Task StartAsync(string adapterId, string adapterPath, IDictionary<string, string> startupValues = null)
+        async public Task StartAsync(string adapterId, string correlationId, string adapterPath, IDictionary<string, string> startupValues = null)
         {
             if (!File.Exists(adapterPath))
                 throw new FileNotFoundException(adapterPath);
@@ -72,16 +72,17 @@ namespace SW.Serverless
                 LocalPath = adapterPath
             };
 
-            await StartAsync(adapterId, fakeMetadata, startupValues);
+            await StartAsync(adapterId, fakeMetadata, correlationId, startupValues);
 
         }
 
-        Task StartAsync(string adapterId, AdapterMetadata adapterMetadata, IDictionary<string, string> startupValues = null)
+        Task StartAsync(string adapterId, AdapterMetadata adapterMetadata, string correlationId, IDictionary<string, string> startupValues = null)
         {
             if (processStarted)
                 throw new Exception("Already started.");
 
             if (startupValues == null) startupValues = new Dictionary<string, string>();
+            startupValues.Add(Constants.CorrelationIdName, correlationId);
 
             adapterLogger = loggerFactory.CreateLogger($"{adaptersNamingPrefix}.{adapterId}".ToLower());
 
