@@ -1,4 +1,5 @@
-﻿using CommandLine;
+﻿using Microsoft.Win32;
+using Newtonsoft.Json;
 using SW.CloudFiles;
 using SW.PrimitiveTypes;
 using System;
@@ -6,54 +7,37 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Reflection;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
 
-namespace SW.Serverless.Installer
+namespace SW.Serverless.Desktop
 {
-    class Program
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
     {
-        static void Main(string[] args)
-        {
-            CommandLine.Parser.Default.ParseArguments<Options>(args)
-              .WithParsed(RunOptions)
-              .WithNotParsed(HandleParseError);
-        }
 
-        static void HandleParseError(IEnumerable<Error> errs)
+        private CloudConnection chosenAdapter;
+        private Options options;
+        public MainWindow()
         {
-            //Console.ReadKey();
-        }
-
-        static void RunOptions(Options opts)
-        {
-
-            try
+            InitializeComponent();
+            this.options = GetOptionsFromJson();
+            foreach(var con in options.CloudConnections)
             {
-                Environment.ExitCode = 1;
-
-                var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
-
-                if (!BuildPublish(opts.ProjectPath, tempPath)) return;
-
-                var zipFileName = Path.Combine(tempPath, $"{opts.AdapterId}");
-
-                if (!Compress(tempPath, zipFileName)) return;
-
-                var projectFileName = Path.GetFileName(opts.ProjectPath);
-                var entryAssembly = $"{projectFileName.Remove(projectFileName.LastIndexOf('.'))}.dll";
-
-                if (!PushToCloud(zipFileName, opts.AdapterId, entryAssembly, opts.AccessKeyId, opts.SecretAccessKey, opts.ServiceUrl, opts.BucketName)) return;
-
-                if (!Cleanup(tempPath)) return;
-
-                Environment.ExitCode = 0;
+                connectionListBox.Items.Add(new ListBoxItem { Content = $"{con.BucketName}.{con.ServiceUrl}" });
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
-
         }
 
         public static bool BuildPublish(string projectPath, string outputPath)
@@ -74,8 +58,6 @@ namespace SW.Serverless.Installer
                 }
             };
 
-            process.OutputDataReceived += OutputDataReceived;
-            process.ErrorDataReceived += OutputDataReceived;
             process.Start();
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
@@ -88,6 +70,7 @@ namespace SW.Serverless.Installer
 
             return result;
         }
+
 
         static bool Compress(string path, string zipFileName)
         {
@@ -103,7 +86,7 @@ namespace SW.Serverless.Installer
 
                     foreach (var file in filesToCompress)
                     {
-                        var entryName = Path.GetRelativePath(path, file);
+                        var entryName = System.IO.Path.GetRelativePath(path, file);
                         archive.CreateEntryFromFile(file, entryName);
                     }
 
@@ -123,14 +106,19 @@ namespace SW.Serverless.Installer
 
         }
 
-        static bool PushToCloud(
-            string zipFielPath,
-            string adapterId,
-            string entryAssembly,
-            string accessKeyId,
-            string secretAccessKey,
-            string serviceUrl,
-            string bucketName)
+        private Options GetOptionsFromJson()
+        {
+            if (File.Exists("./settings.json"))
+            {
+                string optionsJson = File.ReadAllText("./settings.json");
+                return JsonConvert.DeserializeObject<Options>(optionsJson);
+            }
+            return new Options();
+            
+        }
+
+        static bool PushToCloud(string zipFielPath, string adapterId, string entryAssembly, string accessKeyId,
+                                string secretAccessKey, string serviceUrl, string bucketName)
         {
 
             try
@@ -171,6 +159,31 @@ namespace SW.Serverless.Installer
             }
         }
 
+        private async Task InstallAdapter(string projectPath)
+        {
+            if(chosenAdapter == null)
+            {
+                throw new Exception("Invalid connection");
+            }
+
+            var tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+
+            if (!BuildPublish(projectPath, tempPath)) return;
+
+            string adapterId = adapterIdText.Text;
+
+            var zipFileName = System.IO.Path.Combine(tempPath, $"{adapterId}");
+
+            if (!Compress(tempPath, zipFileName)) return;
+
+            var projectFileName = System.IO.Path.GetFileName(projectPath);
+            var entryAssembly = $"{projectFileName.Remove(projectFileName.LastIndexOf('.'))}.dll";
+
+            if (!PushToCloud(zipFileName, adapterId, entryAssembly, chosenAdapter.AccessKeyId, chosenAdapter.SecretAccessKey, chosenAdapter.ServiceUrl, chosenAdapter.BucketName)) return;
+
+            if (!Cleanup(tempPath)) return;
+
+        }
         static bool Cleanup(string tempPath)
         {
             try
@@ -189,9 +202,14 @@ namespace SW.Serverless.Installer
 
         }
 
-        static void OutputDataReceived(object sender, DataReceivedEventArgs args)
+        private void btnOpenFile_Click(object sender, RoutedEventArgs e)
         {
-            Console.WriteLine(args.Data);
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            if (openFileDialog.ShowDialog() == true)
+            {
+
+            }
+
         }
     }
 }

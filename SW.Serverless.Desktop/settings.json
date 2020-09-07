@@ -1,0 +1,17 @@
+{
+
+"cloudConnections": [
+    {
+        "AccessKeyId": "<key>",
+        "SecretAccessKey": "<secret>",
+        "BucketName": "<bucket>",
+        "ServiceUrl": "<url>"
+    },
+    {
+        "AccessKeyId": "<key2>",
+        "SecretAccessKey": "<secret2>",
+        "BucketName": "<bucket2>",
+        "ServiceUrl": "<url2>"
+    }
+]
+}
