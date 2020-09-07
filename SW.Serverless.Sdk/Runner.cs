@@ -260,8 +260,18 @@ namespace SW.Serverless.Sdk
         {
             startupValues.TryGetValue(name, out string value);
             if (value == null && expectedStartupValues.TryGetValue(name, out var startupValue))
-                    value = startupValue.Default;
+                value = startupValue.Default;
             return value;
+        }
+
+        public static T StartupValueOf<T>(string name)
+        {
+            startupValues.TryGetValue(name, out string value);
+            if (value == null && expectedStartupValues.TryGetValue(name, out var startupValue))
+                value = startupValue.Default;
+            if (value != null)
+                return (T)value.ConvertValueToType(typeof(T));
+            return default;
         }
     }
 }
