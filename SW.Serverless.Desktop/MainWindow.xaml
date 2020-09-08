@@ -36,14 +36,14 @@
                     <RowDefinition Height="1*"/>
                     <RowDefinition Height="1*"/>
                 </Grid.RowDefinitions>
-                <Label BorderBrush="Gray" BorderThickness="1" Content="Service Url:" Grid.Row="0" Grid.Column="0" />
-                <Label BorderBrush="Gray" BorderThickness="1" Content="Bucket name:" Grid.Row="1" Grid.Column="0" />
-                <Label BorderBrush="Gray" BorderThickness="1" Content="Access Key Id:" Grid.Row="2" Grid.Column="0" />
-                <Label BorderBrush="Gray" BorderThickness="1" Content="Secret Access Key:" Grid.Row="3" Grid.Column="0" />
-                <TextBox Name="serviceUrlText" Grid.Row="0" Grid.Column="1"  />
-                <TextBox Name="bucketNameText" Grid.Row="1" Grid.Column="1" />
-                <TextBox Name="accessKeyText" Grid.Row="2" Grid.Column="1" />
-                <TextBox Name="secretAccessText" Grid.Row="3" Grid.Column="1" />
+                <Label  Content="Service Url:" Grid.Row="0" Grid.Column="0" />
+                <Label  Content="Bucket name:" Grid.Row="1" Grid.Column="0" />
+                <Label  Content="Access Key Id:" Grid.Row="2" Grid.Column="0" />
+                <Label  Content="Secret Access Key:" Grid.Row="3" Grid.Column="0" />
+                <TextBox Height="25px" Name="serviceUrlText" Grid.Row="0" Grid.Column="1"  />
+                <TextBox Height="25px" Name="bucketNameText" Grid.Row="1" Grid.Column="1" />
+                <TextBox Height="25px" Name="accessKeyText" Grid.Row="2" Grid.Column="1" />
+                <TextBox Height="25px" Name="secretAccessText" Grid.Row="3" Grid.Column="1" />
                 <Button Grid.ColumnSpan="2" HorizontalAlignment="Center" Grid.Row="4" Grid.Column="0" Height="25px" Width="150px" Click="addConnectionToJson" Content="Add cloud connection" />
 
             </Grid>
@@ -69,16 +69,16 @@
                         <ColumnDefinition Width="2*" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="25px"/>
+                        <RowDefinition Height="25px"/>
                         <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
                     </Grid.RowDefinitions>
-                    <Label Grid.Row="1" BorderBrush="Gray" BorderThickness="1">Adapter Id:</Label>
-                    <TextBox Grid.Row="1" BorderBrush="Gray" BorderThickness="1" Grid.Column="1" x:Name="adapterIdText" />
-                    <Label Grid.Row="2" BorderBrush="Gray" BorderThickness="1">Adapter Path:</Label>
-                    <TextBox Grid.Row="2" BorderBrush="Gray" Text="{Binding chosenAdapterValue}" PreviewTextInput="adapterPathText_TextInput" BorderThickness="1" Grid.Column="1" x:Name="adapterPathText" />
-                    <Button Grid.Row="2" Grid.Column="1" HorizontalAlignment="Right" Margin="0 0 7 0" Click="chooseAdapter" Width="50px" Content="Browse"></Button>
+                    <Label Grid.Row="1" >Adapter Id:</Label>
+                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="adapterIdText" />
+                    <Label Margin="0 10 0 0" Grid.Row="2" >Adapter Path:</Label>
+                    <TextBox Margin="0 10 0 0" Grid.Row="2" BorderBrush="Gray" Text="{Binding chosenAdapterValue}" PreviewTextInput="adapterPathText_TextInput" BorderThickness="1" Grid.Column="1" x:Name="adapterPathText" />
+                    <Button Grid.Row="2" Grid.Column="1" HorizontalAlignment="Right" Height="25px" Margin="0 10 0 0" Click="chooseAdapter" Width="50px" Content="Browse"></Button>
                 </Grid>
             </Grid>
             <TextBlock HorizontalAlignment="Center" Foreground="Red" x:Name="errors" Grid.Row="1" />
