@@ -12,4 +12,8 @@
     <PackageReference Include="SimplyWorks.CloudFiles" Version="2.0.5" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\SW.Serverless.Installer\SW.Serverless.Installer.csproj" />
+  </ItemGroup>
+
 </Project>

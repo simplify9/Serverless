@@ -3,12 +3,14 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using SW.CloudFiles;
 using SW.PrimitiveTypes;
+using SW.Serverless.Installer.Shared;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -33,6 +35,13 @@ namespace SW.Serverless.Desktop
         private CloudConnection chosenConnection;
         private string chosenAdapterPath;
         private Options options;
+        private InstallerLogic installer;
+        public MainWindow()
+        {
+            InitializeComponent();
+            installer = new InstallerLogic();
+            initConnections();
+        }
 
         private void addConnection(CloudConnection con)
         {
@@ -49,77 +58,6 @@ namespace SW.Serverless.Desktop
             connections = new Dictionary<string, CloudConnection>();
             foreach(var con in options.CloudConnections)
                 addConnection(con);
-        }
-        public MainWindow()
-        {
-            InitializeComponent();
-            initConnections();
-        }
-
-        public static bool BuildPublish(string projectPath, string outputPath)
-        {
-            Console.WriteLine("Building and publishing...");
-
-            var process = new Process
-            {
-                EnableRaisingEvents = true,
-                StartInfo = new ProcessStartInfo("dotnet")
-                {
-                    Arguments = $"publish \"{projectPath}\" -o \"{outputPath}\"",
-                    //WorkingDirectory = Path.GetDirectoryName(adapterpath),
-                    //UseShellExecute = false,
-                    //RedirectStandardInput = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                }
-            };
-
-            process.Start();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-
-            process.WaitForExit();
-
-            var result = process.ExitCode == 0;
-
-            Console.WriteLine($"Building and publishing {(result ? "succeeded" : "failed")}.");
-
-            return result;
-        }
-
-
-        static bool Compress(string path, string zipFileName)
-        {
-            try
-            {
-                Console.WriteLine("Compressing files...");
-
-                var filesToCompress = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
-
-                {
-                    using var stream = File.OpenWrite(zipFileName);
-                    using var archive = new ZipArchive(stream, ZipArchiveMode.Create);
-
-                    foreach (var file in filesToCompress)
-                    {
-                        var entryName = System.IO.Path.GetRelativePath(path, file);
-                        archive.CreateEntryFromFile(file, entryName);
-                    }
-
-                }
-
-                Console.WriteLine("Compressing files succeeded.");
-                return true;
-            }
-            catch (Exception ex)
-            {
-
-                Console.WriteLine($"Compressing files failed: {ex}");
-                return false;
-
-            }
-
-
         }
 
         private void chooseConnection(object sender, RoutedEventArgs e)
@@ -162,49 +100,7 @@ namespace SW.Serverless.Desktop
             
         }
 
-        static bool PushToCloud(string zipFielPath, string adapterId, string entryAssembly, string accessKeyId,
-                                string secretAccessKey, string serviceUrl, string bucketName)
-        {
-
-            try
-            {
-
-                Console.WriteLine("Pushing to cloud...");
-
-
-                using var cloudService = new CloudFilesService(new CloudFilesOptions
-                {
-                    AccessKeyId = accessKeyId,
-                    SecretAccessKey = secretAccessKey,
-                    ServiceUrl = serviceUrl,
-                    BucketName = bucketName
-                });
-
-                using var zipFileStream = File.OpenRead(zipFielPath);
-
-                cloudService.WriteAsync(zipFileStream, new WriteFileSettings
-                {
-                    ContentType = "application/zip",
-                    Key = $"adapters/{adapterId}".ToLower(),
-                    Metadata = new Dictionary<string, string>
-                        {
-                            {"EntryAssembly", entryAssembly},
-                            {"Lang", "dotnet" }
-                        }
-                }).Wait();
-
-                Console.WriteLine("Pushing to cloud succeeded.");
-                return true;
-
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Pushing to cloud failed: {ex}");
-                return false;
-            }
-        }
-
-        private void installAdapter(object sender, RoutedEventArgs e)
+        private async void installAdapter(object sender, RoutedEventArgs e)
         {
             string projectPath = chosenAdapterPath;
             if(chosenConnection == null)
@@ -214,20 +110,28 @@ namespace SW.Serverless.Desktop
 
             var tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), Guid.NewGuid().ToString("N"));
 
-            if (!BuildPublish(projectPath, tempPath)) return;
+            if (!installer.BuildPublish(projectPath, tempPath)) return;
 
             string adapterId = adapterIdText.Text;
 
             var zipFileName = System.IO.Path.Combine(tempPath, $"{adapterId}");
 
-            if (!Compress(tempPath, zipFileName)) return;
+            if (!installer.Compress(tempPath, zipFileName)) return;
 
             var projectFileName = System.IO.Path.GetFileName(projectPath);
             var entryAssembly = $"{projectFileName.Remove(projectFileName.LastIndexOf('.'))}.dll";
 
-            if (!PushToCloud(zipFileName, adapterId, entryAssembly, chosenConnection.AccessKeyId, chosenConnection.SecretAccessKey, chosenConnection.ServiceUrl, chosenConnection.BucketName)) return;
+            if (await installer.PushToCloudAsync(zipFileName, adapterId, entryAssembly, chosenConnection.AccessKeyId, chosenConnection.SecretAccessKey, chosenConnection.ServiceUrl, chosenConnection.BucketName))
+            {
+                installButton.Content = "Install successful. You can install another adapter.";
+            }
+            else
+            {
+                installButton.Content = "Install failed, check configuration.";
+            }
 
-            if (!Cleanup(tempPath)) return;
+
+            if (!installer.Cleanup(tempPath)) return;
 
         }
 
@@ -240,34 +144,6 @@ namespace SW.Serverless.Desktop
             dialogue.ShowDialog();
             if(dialogue.FileNames != null && dialogue.FileNames.Length > 0)
                 chosenAdapterPath = dialogue.FileName;
-        }
-
-        static bool Cleanup(string tempPath)
-        {
-            try
-            {
-                Console.WriteLine("Cleaning up...");
-                Directory.Delete(tempPath, true);
-                return true;
-
-            }
-            catch (Exception ex)
-            {
-
-                Console.WriteLine($"Cleaning up failed: {ex}");
-                return false;
-            }
-
-        }
-
-        private void btnOpenFile_Click(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            if (openFileDialog.ShowDialog() == true)
-            {
-
-            }
-
         }
 
     }
