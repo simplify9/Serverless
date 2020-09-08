@@ -75,10 +75,12 @@ namespace SW.Serverless.Desktop
 
         private void chooseConnection(object sender, RoutedEventArgs e)
         {
-            var item = (ListBoxItem)connectionListBox.SelectedItem;
-            string key = item.Content.ToString();
+            if(connectionListBox.SelectedItem is ListBoxItem item)
+            {
+                string key = item.Content.ToString();
+                chosenConnection = connections[key];
+            }
             
-            chosenConnection = connections[key];
         }
         private void addConnectionToJson(object sender, RoutedEventArgs e)
         {
