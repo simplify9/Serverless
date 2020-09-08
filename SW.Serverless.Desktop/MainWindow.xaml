@@ -40,12 +40,11 @@
                 <Label BorderBrush="Gray" BorderThickness="1" Content="Bucket name:" Grid.Row="1" Grid.Column="0" />
                 <Label BorderBrush="Gray" BorderThickness="1" Content="Access Key Id:" Grid.Row="2" Grid.Column="0" />
                 <Label BorderBrush="Gray" BorderThickness="1" Content="Secret Access Key:" Grid.Row="3" Grid.Column="0" />
-                <TextBox Name="serviceUrlText" Grid.Row="0" Grid.Column="1" />
+                <TextBox Name="serviceUrlText" Grid.Row="0" Grid.Column="1"  />
                 <TextBox Name="bucketNameText" Grid.Row="1" Grid.Column="1" />
                 <TextBox Name="accessKeyText" Grid.Row="2" Grid.Column="1" />
                 <TextBox Name="secretAccessText" Grid.Row="3" Grid.Column="1" />
-                <TextBlock Grid.Row="4" Background="LightGray" />
-                <Button Grid.Row="4" Grid.Column="1" Click="addConnectionToJson" Content="Add cloud connection" />
+                <Button Grid.ColumnSpan="2" HorizontalAlignment="Center" Grid.Row="4" Grid.Column="0" Height="25px" Width="150px" Click="addConnectionToJson" Content="Add cloud connection" />
 
             </Grid>
         </Grid>
@@ -56,7 +55,6 @@
             </Grid.RowDefinitions>
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1*"/>
                     <ColumnDefinition Width="2*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
@@ -64,7 +62,6 @@
                     <RowDefinition MinHeight="30px" />
                 </Grid.RowDefinitions>
                 <Label  FontWeight="Bold" FontSize="10px" HorizontalAlignment="Center"  Grid.ColumnSpan="2" Content="Adapter properties" />
-                <Button Grid.Row="1" Click="chooseAdapter" Content="Browse for project file"></Button>
                 <Grid Grid.Row="1" Grid.Column="1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1*" />
@@ -73,12 +70,17 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
                     </Grid.RowDefinitions>
                     <Label Grid.Row="1" BorderBrush="Gray" BorderThickness="1">Adapter Id:</Label>
                     <TextBox Grid.Row="1" BorderBrush="Gray" BorderThickness="1" Grid.Column="1" x:Name="adapterIdText" />
+                    <Label Grid.Row="2" BorderBrush="Gray" BorderThickness="1">Adapter Path:</Label>
+                    <TextBox Grid.Row="2" BorderBrush="Gray" BorderThickness="1" Grid.Column="1" x:Name="adapterPathText" />
+                    <Button Grid.Row="2" Grid.Column="1" HorizontalAlignment="Right" Margin="0 0 7 0" Click="chooseAdapter" Width="50px" Content="Browse"></Button>
                 </Grid>
             </Grid>
-            <Button Grid.Row="1" Click="installAdapter" Name="installButton" Content="Install Adapter" />
+            <Button Grid.Row="1" Click="installAdapter" Width="100px" Height="25px" Name="installButton" Content="Install Adapter" />
 
         </Grid>
     </Grid>

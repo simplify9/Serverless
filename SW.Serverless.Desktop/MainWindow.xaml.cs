@@ -45,6 +45,10 @@ namespace SW.Serverless.Desktop
 
         private void addConnection(CloudConnection con)
         {
+            if (connections.Count == 0)
+            {
+                connectionListBox.Items.Clear();
+            }
             var key = $"{con.ServiceUrl}";
             var protoIndex = key.LastIndexOf("://");
             if( protoIndex != -1)
@@ -61,8 +65,12 @@ namespace SW.Serverless.Desktop
         {
             this.options = GetOptionsFromJson();
             connections = new Dictionary<string, CloudConnection>();
-            foreach(var con in options.CloudConnections)
-                addConnection(con);
+            if(options.CloudConnections.Any())
+                foreach(var con in options.CloudConnections)
+                    addConnection(con);
+            else
+                connectionListBox.Items.Add(new TextBlock { Text = "Add connection using below menu" });
+
         }
 
         private void chooseConnection(object sender, RoutedEventArgs e)
@@ -110,7 +118,6 @@ namespace SW.Serverless.Desktop
             string projectPath = chosenAdapterPath;
             if(chosenConnection == null)
             {
-                throw new Exception("Invalid connection");
             }
 
             var tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), Guid.NewGuid().ToString("N"));
