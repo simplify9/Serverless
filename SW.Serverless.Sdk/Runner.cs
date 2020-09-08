@@ -242,10 +242,10 @@ namespace SW.Serverless.Sdk
 
         public static void Expect(string name, string defaultValue)
         {
-            Expect(name, defaultValue, false);
+            Expect(name, defaultValue, true);
         }
 
-        public static void Expect(string name, string defaultValue, bool optional)
+        private static void Expect(string name, string defaultValue, bool optional)
         {
             expectedStartupValues.TryAdd(name, new StartupValue
             {
@@ -253,7 +253,6 @@ namespace SW.Serverless.Sdk
                 Optional = optional,
                 Type = "text"
             });
-
         }
 
         public static string StartupValueOf(string name)
