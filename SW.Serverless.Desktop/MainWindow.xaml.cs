@@ -33,7 +33,7 @@ namespace SW.Serverless.Desktop
 
         private IDictionary<string, CloudConnection> connections;
         private CloudConnection chosenConnection;
-        private string chosenAdapterPath;
+        public string chosenAdapterPath { get; set; } = string.Empty;
         private Options options;
         private InstallerLogic installer;
         public MainWindow()
@@ -115,35 +115,57 @@ namespace SW.Serverless.Desktop
 
         private async void installAdapter(object sender, RoutedEventArgs e)
         {
+            string adapterId = adapterIdText.Text;
             string projectPath = chosenAdapterPath;
             if(chosenConnection == null)
             {
+                errors.Text = $"\nSelect a connection.";
+                return;
+            }
+            if(string.IsNullOrEmpty(chosenAdapterPath))
+            {
+                errors.Text = $"\nBrowse or paste adapter path above";
+                return;
+            }
+            if(string.IsNullOrEmpty(adapterId))
+            {
+                errors.Text = $"\nAdapter Id is required.";
+                return;
             }
 
             var tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), Guid.NewGuid().ToString("N"));
 
-            if (!installer.BuildPublish(projectPath, tempPath)) return;
-
-            string adapterId = adapterIdText.Text;
+            if (!installer.BuildPublish(projectPath, tempPath))
+            {
+                errors.Text = $"Build failed. Check adapter at {chosenAdapterPath}.";
+                return;
+            }
 
             var zipFileName = System.IO.Path.Combine(tempPath, $"{adapterId}");
 
-            if (!installer.Compress(tempPath, zipFileName)) return;
+            if (!installer.Compress(tempPath, zipFileName)) 
+            {
+                errors.Text = "Compression failed.";
+                return;
+            }
 
             var projectFileName = System.IO.Path.GetFileName(projectPath);
             var entryAssembly = $"{projectFileName.Remove(projectFileName.LastIndexOf('.'))}.dll";
 
             if (await installer.PushToCloudAsync(zipFileName, adapterId, entryAssembly, chosenConnection.AccessKeyId, chosenConnection.SecretAccessKey, chosenConnection.ServiceUrl, chosenConnection.BucketName))
             {
-                installButton.Content = "Install successful. You can install another adapter.";
+                errors.Text = "Install successful. You can install another adapter.";
             }
             else
             {
-                installButton.Content = "Install failed, check configuration.";
+                errors.Text = "Install failed, check configuration.";
             }
 
 
-            if (!installer.Cleanup(tempPath)) return;
+            if (!installer.Cleanup(tempPath))
+            {
+                errors.Text = "Cleanup Failed. Check remaining files.";
+            }
 
         }
 
@@ -155,8 +177,15 @@ namespace SW.Serverless.Desktop
             dialogue.ValidateNames = true;
             dialogue.ShowDialog();
             if(dialogue.FileNames != null && dialogue.FileNames.Length > 0)
+            {
                 chosenAdapterPath = dialogue.FileName;
+                adapterPathText.Text = dialogue.FileName;
+            }
         }
 
+        private void adapterPathText_TextInput(object sender, TextCompositionEventArgs e)
+        {
+            chosenAdapterPath += e.Text;
+        }
     }
 }
