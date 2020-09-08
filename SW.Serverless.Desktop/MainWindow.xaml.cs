@@ -45,7 +45,12 @@ namespace SW.Serverless.Desktop
 
         private void addConnection(CloudConnection con)
         {
-            var key = $"{con.BucketName}.{con.ServiceUrl}";
+            var key = $"{con.ServiceUrl}";
+            var protoIndex = key.LastIndexOf("://");
+            if( protoIndex != -1)
+            {
+                key = key.Insert(protoIndex + 3, $"{con.BucketName}.");
+            }
             if (connections.TryAdd(key, con))
             {
                 connectionListBox.Items.Add(new ListBoxItem { Content = key });
