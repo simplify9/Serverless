@@ -33,17 +33,27 @@ namespace SW.Serverless.Desktop
         private CloudConnection chosenConnection;
         private string chosenAdapterPath;
         private Options options;
-        public MainWindow()
+
+        private void addConnection(CloudConnection con)
         {
-            InitializeComponent();
+            var key = $"{con.BucketName}.{con.ServiceUrl}";
+            if (connections.TryAdd(key, con))
+            {
+                connectionListBox.Items.Add(new ListBoxItem { Content = key });
+            }
+        }
+
+        private void initConnections()
+        {
             this.options = GetOptionsFromJson();
             connections = new Dictionary<string, CloudConnection>();
             foreach(var con in options.CloudConnections)
-            {
-                var key = $"{con.BucketName}.{con.ServiceUrl}";
-                connections.Add(key, con);
-                connectionListBox.Items.Add(new ListBoxItem { Content = key });
-            }
+                addConnection(con);
+        }
+        public MainWindow()
+        {
+            InitializeComponent();
+            initConnections();
         }
 
         public static bool BuildPublish(string projectPath, string outputPath)
@@ -123,15 +133,18 @@ namespace SW.Serverless.Desktop
         {
 
             Options current = GetOptionsFromJson();
-            current.CloudConnections.Add(new CloudConnection
+            var connection = new CloudConnection
             {
                 AccessKeyId = accessKeyText.Text,
                 BucketName = bucketNameText.Text,
                 SecretAccessKey = secretAccessText.Text,
                 ServiceUrl = serviceUrlText.Text
-            });
+            };
+            current.CloudConnections.Add(connection);
             string optionsJson = JsonConvert.SerializeObject(current);
             File.WriteAllText("./settings.json", optionsJson);
+            addConnection(connection);
+
         }
 
         private Options GetOptionsFromJson()
