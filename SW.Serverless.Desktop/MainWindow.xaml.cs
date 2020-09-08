@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+﻿using Amazon.S3.Model;
+using Microsoft.Win32;
 using Newtonsoft.Json;
 using SW.CloudFiles;
 using SW.PrimitiveTypes;
@@ -28,15 +29,20 @@ namespace SW.Serverless.Desktop
     public partial class MainWindow : Window
     {
 
-        private CloudConnection chosenAdapter;
+        private IDictionary<string, CloudConnection> connections;
+        private CloudConnection chosenConnection;
+        private string chosenAdapterPath;
         private Options options;
         public MainWindow()
         {
             InitializeComponent();
             this.options = GetOptionsFromJson();
+            connections = new Dictionary<string, CloudConnection>();
             foreach(var con in options.CloudConnections)
             {
-                connectionListBox.Items.Add(new ListBoxItem { Content = $"{con.BucketName}.{con.ServiceUrl}" });
+                var key = $"{con.BucketName}.{con.ServiceUrl}";
+                connections.Add(key, con);
+                connectionListBox.Items.Add(new ListBoxItem { Content = key });
             }
         }
 
@@ -106,12 +112,41 @@ namespace SW.Serverless.Desktop
 
         }
 
+        private void chooseConnection(object sender, RoutedEventArgs e)
+        {
+            var item = (ListBoxItem)connectionListBox.SelectedItem;
+            string key = item.Content.ToString();
+            
+            chosenConnection = connections[key];
+        }
+        private void addConnectionToJson(object sender, RoutedEventArgs e)
+        {
+
+            Options current = GetOptionsFromJson();
+            current.CloudConnections.Add(new CloudConnection
+            {
+                AccessKeyId = accessKeyText.Text,
+                BucketName = bucketNameText.Text,
+                SecretAccessKey = secretAccessText.Text,
+                ServiceUrl = serviceUrlText.Text
+            });
+            string optionsJson = JsonConvert.SerializeObject(current);
+            File.WriteAllText("./settings.json", optionsJson);
+        }
+
         private Options GetOptionsFromJson()
         {
             if (File.Exists("./settings.json"))
             {
                 string optionsJson = File.ReadAllText("./settings.json");
                 return JsonConvert.DeserializeObject<Options>(optionsJson);
+            }
+            else
+            {
+                File.WriteAllText("./settings.json", JsonConvert.SerializeObject(new Options
+                {
+                    CloudConnections = new List<CloudConnection>()
+                }));
             }
             return new Options();
             
@@ -159,9 +194,10 @@ namespace SW.Serverless.Desktop
             }
         }
 
-        private async Task InstallAdapter(string projectPath)
+        private void installAdapter(object sender, RoutedEventArgs e)
         {
-            if(chosenAdapter == null)
+            string projectPath = chosenAdapterPath;
+            if(chosenConnection == null)
             {
                 throw new Exception("Invalid connection");
             }
@@ -179,11 +215,23 @@ namespace SW.Serverless.Desktop
             var projectFileName = System.IO.Path.GetFileName(projectPath);
             var entryAssembly = $"{projectFileName.Remove(projectFileName.LastIndexOf('.'))}.dll";
 
-            if (!PushToCloud(zipFileName, adapterId, entryAssembly, chosenAdapter.AccessKeyId, chosenAdapter.SecretAccessKey, chosenAdapter.ServiceUrl, chosenAdapter.BucketName)) return;
+            if (!PushToCloud(zipFileName, adapterId, entryAssembly, chosenConnection.AccessKeyId, chosenConnection.SecretAccessKey, chosenConnection.ServiceUrl, chosenConnection.BucketName)) return;
 
             if (!Cleanup(tempPath)) return;
 
         }
+
+        private void chooseAdapter(object sender, RoutedEventArgs args)
+        {
+            var dialogue = new OpenFileDialog();
+            dialogue.Multiselect = false;
+            dialogue.CheckFileExists = true;
+            dialogue.ValidateNames = true;
+            dialogue.ShowDialog();
+            if(dialogue.FileNames != null && dialogue.FileNames.Length > 0)
+                chosenAdapterPath = dialogue.FileName;
+        }
+
         static bool Cleanup(string tempPath)
         {
             try
@@ -211,5 +259,6 @@ namespace SW.Serverless.Desktop
             }
 
         }
+
     }
 }
