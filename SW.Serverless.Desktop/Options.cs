@@ -17,7 +17,10 @@ namespace SW.Serverless.Desktop
     }
     public class Options
     {
-
+        public Options()
+        {
+            CloudConnections = new List<CloudConnection>();
+        }
         public List<CloudConnection> CloudConnections { get; set; }
     }
 }

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SW.Serverless.Desktop"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Serverless Installer" Height="450" Width="800">
     <Grid >
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*" />
@@ -16,7 +16,14 @@
                 <RowDefinition Height="1*"/>
                 <RowDefinition Height="1*"/>
             </Grid.RowDefinitions>
-            <ListBox SelectionChanged="chooseConnection" BorderBrush="Gray" BorderThickness="1" Grid.Row="0" Name="connectionListBox"></ListBox>
+            <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+                <Label  FontWeight="Bold" FontSize="10px" HorizontalAlignment="Center" Content="Cloud Connection" />
+                <ListBox SelectionChanged="chooseConnection" BorderBrush="Gray" BorderThickness="1" Grid.Row="1" Name="connectionListBox"></ListBox>
+            </Grid>
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*" />
@@ -52,8 +59,13 @@
                     <ColumnDefinition Width="1*"/>
                     <ColumnDefinition Width="2*"/>
                 </Grid.ColumnDefinitions>
-                <Button Click="chooseAdapter" Content="Browse for project file"></Button>
-                <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition MinHeight="30px" />
+                </Grid.RowDefinitions>
+                <Label  FontWeight="Bold" FontSize="10px" HorizontalAlignment="Center"  Grid.ColumnSpan="2" Content="Adapter properties" />
+                <Button Grid.Row="1" Click="chooseAdapter" Content="Browse for project file"></Button>
+                <Grid Grid.Row="1" Grid.Column="1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1*" />
                         <ColumnDefinition Width="2*" />
@@ -62,7 +74,6 @@
                         <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
                     </Grid.RowDefinitions>
-                    <Label  FontWeight="Bold" FontSize="10px" HorizontalAlignment="Center"  Grid.ColumnSpan="2" Content="Adapter properties" />
                     <Label Grid.Row="1" BorderBrush="Gray" BorderThickness="1">Adapter Id:</Label>
                     <TextBox Grid.Row="1" BorderBrush="Gray" BorderThickness="1" Grid.Column="1" x:Name="adapterIdText" />
                 </Grid>

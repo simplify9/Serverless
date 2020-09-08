@@ -143,12 +143,9 @@ namespace SW.Serverless.Desktop
             }
             else
             {
-                File.WriteAllText("./settings.json", JsonConvert.SerializeObject(new Options
-                {
-                    CloudConnections = new List<CloudConnection>()
-                }));
+                File.WriteAllText("./settings.json", JsonConvert.SerializeObject(new Options()));
+                return new Options();
             }
-            return new Options();
             
         }
 
