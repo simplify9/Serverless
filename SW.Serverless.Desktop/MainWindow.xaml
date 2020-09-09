@@ -44,7 +44,7 @@
                 <TextBox Height="25px" Name="bucketNameText" Grid.Row="1" Grid.ColumnSpan="2" Margin="114,10,20,9" />
                 <TextBox Height="25px" Name="accessKeyText" Grid.Row="2" Grid.ColumnSpan="2" Margin="114,9,20,9" />
                 <TextBox Height="25px" Name="secretAccessText" Grid.Row="3" Grid.ColumnSpan="2" Margin="114,9,20,10" />
-                <Button Grid.ColumnSpan="2" HorizontalAlignment="Left" Grid.Row="4" Grid.Column="0" Height="25px" Width="150px" Click="addConnectionToJson" Content="Add cloud connection" Margin="107,8,0,10" />
+                <Button Grid.ColumnSpan="2" HorizontalAlignment="Center" Grid.Row="4" Grid.Column="0" Height="25px" Width="150px" Click="addConnectionToJson" Content="Add cloud connection" />
 
             </Grid>
         </Grid>
