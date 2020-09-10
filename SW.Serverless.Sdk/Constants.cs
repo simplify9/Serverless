@@ -12,5 +12,7 @@ namespace SW.Serverless.Sdk
         public const string LogInformationIdentifier = "{{log.information}}";
         public const string LogWarningIdentifier = "{{log.warning}}";
         public const string LogErrorIdentifier = "{{log.error}}";
+        public const string CorrelationIdName = "CorrelationId";
+
     }
 }

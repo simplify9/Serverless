@@ -38,7 +38,7 @@ namespace SW.Serverless.UnitTests
         {
             var serverless = server.Host.Services.GetService<IServerlessService>();
 
-            await serverless.StartAsync("unittests.adapter");
+            await serverless.StartAsync("unittests.adapter", "123");
 
             await serverless.InvokeAsync("TestParameterless", null);
 
@@ -50,7 +50,7 @@ namespace SW.Serverless.UnitTests
         {
             var serverless =  server.Host.Services.GetService<IServerlessService>();
 
-            await serverless.StartAsync("unittests.adapter");
+            await serverless.StartAsync("unittests.adapter", null);
 
             var result = await serverless.InvokeAsync<string>("TestString", "test1");
 
@@ -62,7 +62,7 @@ namespace SW.Serverless.UnitTests
         {
             var serverless = server.Host.Services.GetService<IServerlessService>();
 
-            await serverless.StartAsync("unittests.adapter");
+            await serverless.StartAsync("unittests.adapter", null);
 
             var result = await serverless.InvokeAsync<int>("TestInt", 12);
 
@@ -74,7 +74,7 @@ namespace SW.Serverless.UnitTests
         {
             var serverless = server.Host.Services.GetService<IServerlessService>();
 
-            await serverless.StartAsync("unittests.adapter");
+            await serverless.StartAsync("unittests.adapter", null);
 
             var result = await serverless.InvokeAsync<RemoteBlob>("TestObject", new RemoteBlob 
             { 
@@ -92,7 +92,7 @@ namespace SW.Serverless.UnitTests
         {
             var serverless = server.Host.Services.GetService<IServerlessService>();
 
-            await serverless.StartAsync("unittests.adapter");
+            await serverless.StartAsync("unittests.adapter", null);
 
             var result = await serverless.InvokeAsync<RemoteBlob>("TestObject", null);
 

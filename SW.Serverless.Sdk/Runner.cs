@@ -13,17 +13,19 @@ namespace SW.Serverless.Sdk
 {
     public static class Runner
     {
+        public static string CorrelationId => startupValues[Constants.CorrelationIdName];
         public static ServerlessOptions ServerlessOptions { get; private set; }
-        public static IReadOnlyDictionary<string, string> StartupValues { get; private set; }
         public static IReadOnlyDictionary<string, string> AdapterValues { get; private set; }
 
+
+        private static IReadOnlyDictionary<string, string> startupValues;
         private static readonly IDictionary<string, StartupValue> expectedStartupValues = new Dictionary<string, StartupValue>(StringComparer.OrdinalIgnoreCase);
 
         public static void MockRun(object commandHandler, ServerlessOptions serverlessOptions, IReadOnlyDictionary<string, string> startupValues = null, IReadOnlyDictionary<string, string> adapterValues = null)
         {
 
             ServerlessOptions = serverlessOptions;
-            StartupValues = startupValues;
+            Runner.startupValues = startupValues;
             AdapterValues = adapterValues;
 
             BuildMethodsDictionary(commandHandler);
@@ -51,7 +53,9 @@ namespace SW.Serverless.Sdk
 
                 try
                 {
-                    StartupValues = new Dictionary<string, string>(JsonConvert.DeserializeObject<IDictionary<string, string>>(Encoding.UTF8.GetString(Convert.FromBase64String(commandLineArgs[2]))), StringComparer.OrdinalIgnoreCase);
+                    startupValues = new Dictionary<string, string>(JsonConvert.DeserializeObject<IDictionary<string, string>>(Encoding.UTF8.GetString(Convert.FromBase64String(commandLineArgs[2]))), StringComparer.OrdinalIgnoreCase);
+                    //if (startupValues.TryGetValue("CorrelationId", out var correlationId))
+                    //    //CorrelationId = correlationId;
                 }
                 catch (Exception ex)
                 {
@@ -238,10 +242,10 @@ namespace SW.Serverless.Sdk
 
         public static void Expect(string name, string defaultValue)
         {
-            Expect(name, defaultValue, false);
+            Expect(name, defaultValue, true);
         }
 
-        public static void Expect(string name, string defaultValue, bool optional)
+        private static void Expect(string name, string defaultValue, bool optional)
         {
             expectedStartupValues.TryAdd(name, new StartupValue
             {
@@ -249,6 +253,24 @@ namespace SW.Serverless.Sdk
                 Optional = optional,
                 Type = "text"
             });
+        }
+
+        public static string StartupValueOf(string name)
+        {
+            startupValues.TryGetValue(name, out string value);
+            if (value == null && expectedStartupValues.TryGetValue(name, out var startupValue))
+                value = startupValue.Default;
+            return value;
+        }
+
+        public static T StartupValueOf<T>(string name)
+        {
+            startupValues.TryGetValue(name, out string value);
+            if (value == null && expectedStartupValues.TryGetValue(name, out var startupValue))
+                value = startupValue.Default;
+            if (value != null)
+                return (T)value.ConvertValueToType(typeof(T));
+            return default;
         }
     }
 }

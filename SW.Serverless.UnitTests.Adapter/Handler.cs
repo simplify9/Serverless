@@ -11,6 +11,7 @@ namespace SW.Serverless.SampleAdapter2
 {
     class Handler
     {
+        string userName;
         public Handler()
         {
             Runner.Expect("UserName", "admin");
@@ -19,6 +20,7 @@ namespace SW.Serverless.SampleAdapter2
 
         public Task TestVoid(string input)
         {
+            var cid = Runner.CorrelationId;
             return Task.CompletedTask;
         }
 
