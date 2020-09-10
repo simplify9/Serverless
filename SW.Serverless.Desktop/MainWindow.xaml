@@ -1,0 +1,89 @@
+﻿<Window x:Class="SW.Serverless.Desktop.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SW.Serverless.Desktop"
+        mc:Ignorable="d"
+        Title="Serverless Installer" Height="450" Width="800">
+    <Grid >
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="1*" />
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+            </Grid.RowDefinitions>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Label  FontWeight="Bold" FontSize="10px" HorizontalAlignment="Center" Content="Cloud Connection" />
+                <ListBox SelectionChanged="chooseConnection" BorderBrush="Gray" BorderThickness="1" Name="connectionListBox" Margin="15,23,20,0" Grid.RowSpan="2"/>
+            </Grid>
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="2.5*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1*"/>
+                </Grid.RowDefinitions>
+                <Label  Content="Service Url:" Grid.Row="0" Grid.Column="0" Margin="10,10,0,9" VerticalContentAlignment="Center" />
+                <Label  Content="Bucket name:" Grid.Column="0" Margin="10,10,0,9" Grid.Row="1" VerticalContentAlignment="Center" />
+                <Label  Content="Access Key Id:" Grid.Row="2" Grid.Column="0" Margin="10,9,0,10" VerticalContentAlignment="Center" />
+                <Label  Content="Secret Access Key:" Grid.Row="3" Grid.Column="0" Margin="10,9,0,10" VerticalContentAlignment="Center" />
+                <TextBox Height="25px" Name="serviceUrlText" Grid.Row="0" Grid.ColumnSpan="2" Margin="114,9,20,9"  />
+                <TextBox Height="25px" Name="bucketNameText" Grid.Row="1" Grid.ColumnSpan="2" Margin="114,10,20,9" />
+                <TextBox Height="25px" Name="accessKeyText" Grid.Row="2" Grid.ColumnSpan="2" Margin="114,9,20,9" />
+                <TextBox Height="25px" Name="secretAccessText" Grid.Row="3" Grid.ColumnSpan="2" Margin="114,9,20,10" />
+                <Button Grid.ColumnSpan="2" HorizontalAlignment="Center" Grid.Row="4" Grid.Column="0" Height="25px" Width="150px" Click="addConnectionToJson" Content="Add cloud connection" />
+
+            </Grid>
+        </Grid>
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="3*" />
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
+            </Grid.RowDefinitions>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition MinHeight="30px" />
+                </Grid.RowDefinitions>
+                <Label  FontWeight="Bold" FontSize="10px" HorizontalAlignment="Center"  Grid.ColumnSpan="2" Content="Adapter properties" />
+                <Grid Grid.Row="1" Grid.Column="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="2*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="25px"/>
+                        <RowDefinition Height="25px"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+                    <Label Grid.Row="1" VerticalContentAlignment="Center" >Adapter Id:</Label>
+                    <TextBox Grid.Row="1" x:Name="adapterIdText" Grid.ColumnSpan="2" Margin="133,0,15,0" />
+                    <Label Margin="0 10 0 0" Grid.Row="2" VerticalContentAlignment="Center" >Adapter Path:</Label>
+                    <TextBox Margin="133,10,15,0" Grid.Row="2" BorderBrush="Gray" Text="{Binding chosenAdapterValue}" PreviewTextInput="adapterPathText_TextInput" BorderThickness="1" x:Name="adapterPathText" Grid.ColumnSpan="2" Grid.RowSpan="2" />
+                    <Button Grid.Row="2" Grid.Column="1" HorizontalAlignment="Right" Height="25px" Margin="0,11,15,0" Click="chooseAdapter" Width="50px" Content="Browse" Grid.RowSpan="2"></Button>
+                </Grid>
+            </Grid>
+            <TextBlock HorizontalAlignment="Center" Foreground="Red" x:Name="errors" Grid.Row="1" />
+            <Button Grid.Row="2" Click="installAdapter" Height="25px" Name="installButton" Content="Install Adapter" Margin="126,52,127,10" />
+
+        </Grid>
+    </Grid>
+</Window>

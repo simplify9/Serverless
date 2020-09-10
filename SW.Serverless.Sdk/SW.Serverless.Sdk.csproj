@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="SimplyWorks.PrimitiveTypes" Version="2.0.44" />
+    <PackageReference Include="SimplyWorks.PrimitiveTypes" Version="2.0.50" />
   </ItemGroup>
   <ItemGroup>
     <None Include="../icon.png">
