@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="SimplyWorks.PrimitiveTypes" Version="2.0.50" />
+    <PackageReference Include="SimplyWorks.PrimitiveTypes" Version="2.0.59" />
   </ItemGroup>
   <ItemGroup>
     <None Include="../icon.png">
