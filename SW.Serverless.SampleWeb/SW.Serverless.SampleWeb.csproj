@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="SimplyWorks.CloudFiles.Extensions" Version="2020.5.30.4" />
+    <PackageReference Include="SimplyWorks.CloudFiles.Extensions" Version="2.0.5" />
   </ItemGroup>
 
   <ItemGroup>

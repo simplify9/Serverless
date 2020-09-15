@@ -24,6 +24,22 @@ namespace SW.Serverless.SampleWeb.Controllers
             this.serviceProvider = serviceProvider;
         }
 
+        [HttpGet("{adapterId}/expected")]
+        public async Task<IActionResult> Invoke(string adapterId)
+        {
+            using var stream = new StreamReader(Request.Body);
+
+            var serverless = serviceProvider.GetService<IServerlessService>();
+            var startupValues = new Dictionary<string, string>
+            {
+                {"key1","val12345" }
+            };
+
+            var path = Path.GetFullPath("../SW.Serverless.UnitTests.Adapter/bin/Debug/netcoreapp3.1/SW.Serverless.UnitTests.Adapter.dll");
+            await serverless.StartAsync(adapterId, path, startupValues);
+            return Ok(await serverless.GetExpectedStartupValues());
+        }
+
         [HttpPost("{adapterId}/{method}")]
         public async Task<IActionResult> Invoke(string adapterId, string method)
         {
@@ -35,8 +51,10 @@ namespace SW.Serverless.SampleWeb.Controllers
                 {"key1","val12345" }
             };
 
-            //await serverless.StartAsync(adapterId, @"C:\Users\Samer Awajan\source\repos\Serverless\SW.Serverless.SampleAdapter2\bin\Debug\netcoreapp3.1\SW.Serverless.SampleAdapter2.dll", startupValues);
-            await serverless.StartAsync(adapterId, startupValues);
+            var path = Path.GetFullPath("../SW.Serverless.UnitTests.Adapter/bin/Debug/netcoreapp3.1/SW.Serverless.UnitTests.Adapter.dll");
+
+            await serverless.StartAsync(adapterId, path, startupValues);
+            //await serverless.StartAsync(adapterId, startupValues);
 
             var input = await stream.ReadToEndAsync();
 
@@ -46,28 +64,6 @@ namespace SW.Serverless.SampleWeb.Controllers
             //result = await serverless.InvokeAsync("TestString", input);
 
             return Ok(result);
-            //return Ok();
         }
-
-
-        //[HttpPut("admin/adapters/{adapterId}")]
-        //public async Task<IActionResult> Install(string adapterId, [FromBody]InstallAdapter installAdapter)
-        //{
-
-        //    var adapterConfig = new AdapterMetadata
-        //    {
-        //        EntryAssembly = installAdapter.EntryAssembly,
-        //        Hash = "123"
-        //    };
-
-        //    await cloudFilesService.WriteTextAcync("adapters/{adapterId}", new WriteFileSettings
-        //    {
-        //        ContentType = "application/json",
-        //        Key = ""
-        //    });
-
-        //    return Ok();
-
-        //}
     }
 }

@@ -3,6 +3,7 @@ using SW.PrimitiveTypes;
 using SW.Serverless.Sdk;
 using System;
 using System.Collections.Generic;
+using System.Net.Security;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,8 +11,16 @@ namespace SW.Serverless.SampleAdapter2
 {
     class Handler
     {
+        string userName;
+        public Handler()
+        {
+            Runner.Expect("UserName", "admin");
+            Runner.Expect("Password");
+        }
+
         public Task TestVoid(string input)
         {
+            var cid = Runner.CorrelationId;
             return Task.CompletedTask;
         }
 
@@ -19,6 +28,15 @@ namespace SW.Serverless.SampleAdapter2
         {
             
             return Task.CompletedTask;
+        }
+
+        public Task<RemoteBlob> TestTypedReturn()
+        {
+
+            return Task.FromResult(new RemoteBlob 
+            { 
+                Location = "http://sample.com"
+            });
         }
 
         public Task<object> TestString(string value)

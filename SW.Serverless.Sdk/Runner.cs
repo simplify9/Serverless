@@ -11,17 +11,21 @@ using System.Threading.Tasks;
 
 namespace SW.Serverless.Sdk
 {
-    public sealed class Runner
+    public static class Runner
     {
+        public static string CorrelationId => startupValues[Constants.CorrelationIdName];
         public static ServerlessOptions ServerlessOptions { get; private set; }
-        public static IReadOnlyDictionary<string, string> StartupValues { get; private set; }
         public static IReadOnlyDictionary<string, string> AdapterValues { get; private set; }
+
+
+        private static IReadOnlyDictionary<string, string> startupValues;
+        private static readonly IDictionary<string, StartupValue> expectedStartupValues = new Dictionary<string, StartupValue>(StringComparer.OrdinalIgnoreCase);
 
         public static void MockRun(object commandHandler, ServerlessOptions serverlessOptions, IReadOnlyDictionary<string, string> startupValues = null, IReadOnlyDictionary<string, string> adapterValues = null)
         {
 
             ServerlessOptions = serverlessOptions;
-            StartupValues = startupValues;
+            Runner.startupValues = startupValues;
             AdapterValues = adapterValues;
 
             BuildMethodsDictionary(commandHandler);
@@ -49,7 +53,9 @@ namespace SW.Serverless.Sdk
 
                 try
                 {
-                    StartupValues = new Dictionary<string, string>(JsonConvert.DeserializeObject<IDictionary<string, string>>(Encoding.UTF8.GetString(Convert.FromBase64String(commandLineArgs[2]))), StringComparer.OrdinalIgnoreCase);
+                    startupValues = new Dictionary<string, string>(JsonConvert.DeserializeObject<IDictionary<string, string>>(Encoding.UTF8.GetString(Convert.FromBase64String(commandLineArgs[2]))), StringComparer.OrdinalIgnoreCase);
+                    //if (startupValues.TryGetValue("CorrelationId", out var correlationId))
+                    //    //CorrelationId = correlationId;
                 }
                 catch (Exception ex)
                 {
@@ -89,16 +95,22 @@ namespace SW.Serverless.Sdk
                         if (input == Constants.QuitCommand) break;
                         if (input == null) continue;
 
+
                         var inputSegments = input.Split(Constants.Delimiter);
 
                         if (inputSegments.Length != 4)
                             throw new Exception("Wrong data format.");
 
-                        object result = null;
+                        if (inputSegments[1] == Constants.ExpectedCommand)
+                        {
+                            var expectedValuesString = JsonConvert.SerializeObject(expectedStartupValues);
+                            await Console.Out.WriteLineAsync($"{Constants.Delimiter}{expectedValuesString.Replace("\n", Constants.NewLineIdentifier).Replace("\r", "")}{Constants.Delimiter}");
+                            continue;
+                        }
 
                         if (methodsDictionary.TryGetValue(inputSegments[1], out var handlerMethodInfo))
                         {
-                            //string inputDenormalized = null;
+                            object result = null;
                             object inputTyped = null;
 
                             if (inputSegments[2] != Constants.NullIdentifier && handlerMethodInfo.ParameterType != null)
@@ -121,24 +133,31 @@ namespace SW.Serverless.Sdk
                             }
                             else
                             {
+                                Task task;
                                 if (handlerMethodInfo.ParameterType == null)
-                                    result = await (Task<object>)handlerMethodInfo.MethodInfo.Invoke(commandHandler, null);
+                                {
+                                    task = (Task)handlerMethodInfo.MethodInfo.Invoke(commandHandler, null);
+                                }
                                 else
-                                    result = await (Task<object>)handlerMethodInfo.MethodInfo.Invoke(commandHandler, new object[] { inputTyped });
+                                {
+                                    task = (Task)handlerMethodInfo.MethodInfo.Invoke(commandHandler, new object[] { inputTyped });
+                                }
+                                await task.ConfigureAwait(false);
+                                result = task.GetType().GetProperty(nameof(Task<object>.Result)).GetValue(task);
+
                             }
 
                             string resultString = null;
 
                             if (result == null)
                                 resultString = Constants.NullIdentifier;
-                            else if (result.GetType() == typeof(string) || result.GetType().IsPrimitive)
+                            else if (result.GetType() == typeof(string) || result.GetType().IsPrimitive())
                                 resultString = result.ToString();
                             else
                                 resultString = JsonConvert.SerializeObject(result);
 
                             await Console.Out.WriteLineAsync($"{Constants.Delimiter}{resultString.Replace("\n", Constants.NewLineIdentifier).Replace("\r", "")}{Constants.Delimiter}");
                         }
-
                         else
                             throw new MissingMethodException(commandHandler.GetType().FullName, inputSegments[1]);
                     }
@@ -157,6 +176,14 @@ namespace SW.Serverless.Sdk
             {
                 idleTimer?.Dispose();
             }
+        }
+
+        static bool IsPrimitive(this Type type)
+        {
+            var nakedType = Nullable.GetUnderlyingType(type);
+            if (nakedType != null)
+                type = nakedType;
+            return type.IsPrimitive;
         }
 
         static Dictionary<string, HandlerMethodInfo> BuildMethodsDictionary(object commandHandler)
@@ -188,7 +215,7 @@ namespace SW.Serverless.Sdk
 
                 }));
 
-            methods.Where(m => m.ReturnType == typeof(Task<object>) && m.GetParameters().Length == 0).
+            methods.Where(m => m.ReturnType.IsGenericType && m.ReturnType.GetGenericTypeDefinition() == typeof(Task<>) && m.GetParameters().Length == 0).
                 ToList().
                 ForEach(m => methodsDictionary.Add(m.Name, new HandlerMethodInfo
                 {
@@ -196,7 +223,7 @@ namespace SW.Serverless.Sdk
                     Void = false,
                 }));
 
-            methods.Where(m => m.ReturnType == typeof(Task<object>) && m.GetParameters().Length == 1).
+            methods.Where(m => m.ReturnType.IsGenericType && m.ReturnType.GetGenericTypeDefinition() == typeof(Task<>) && m.GetParameters().Length == 1).
                 ToList().
                 ForEach(m => methodsDictionary.Add(m.Name, new HandlerMethodInfo
                 {
@@ -206,6 +233,44 @@ namespace SW.Serverless.Sdk
                 }));
 
             return methodsDictionary;
+        }
+
+        public static void Expect(string name, bool optional = false)
+        {
+            Expect(name, null, optional);
+        }
+
+        public static void Expect(string name, string defaultValue)
+        {
+            Expect(name, defaultValue, true);
+        }
+
+        private static void Expect(string name, string defaultValue, bool optional)
+        {
+            expectedStartupValues.TryAdd(name, new StartupValue
+            {
+                Default = defaultValue,
+                Optional = optional,
+                Type = "text"
+            });
+        }
+
+        public static string StartupValueOf(string name)
+        {
+            startupValues.TryGetValue(name, out string value);
+            if (value == null && expectedStartupValues.TryGetValue(name, out var startupValue))
+                value = startupValue.Default;
+            return value;
+        }
+
+        public static T StartupValueOf<T>(string name)
+        {
+            startupValues.TryGetValue(name, out string value);
+            if (value == null && expectedStartupValues.TryGetValue(name, out var startupValue))
+                value = startupValue.Default;
+            if (value != null)
+                return (T)value.ConvertValueToType(typeof(T));
+            return default;
         }
     }
 }

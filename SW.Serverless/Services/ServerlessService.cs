@@ -26,7 +26,6 @@ namespace SW.Serverless
         private readonly IMemoryCache memoryCache;
         private readonly ILoggerFactory loggerFactory;
         private readonly ILogger<ServerlessService> logger;
-        //private readonly CloudFilesOptions cloudFilesOptions;
         private Process process;
         private object taskCompletionSource;
         private MethodInfo trySetResultMethod;
@@ -34,8 +33,6 @@ namespace SW.Serverless
         private Timer invocationTimeoutTimer;
         private bool processStarted;
         private ILogger adapterLogger;
-
-
 
         public ServerlessService(ServerlessOptions serverlessOptions, IMemoryCache memoryCache, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
         {
@@ -53,9 +50,7 @@ namespace SW.Serverless
             //cloudFilesOptions = serverlessOptions.CloudFilesOptions;
         }
 
-        //var adapterpath = @"C:\Users\Samer Awajan\source\repos\Serverless\SW.Serverless.SampleAdapter2\bin\Debug\netcoreapp3.1\SW.Serverless.SampleAdapter2.dll";
-
-        async public Task StartAsync(string adapterId, IDictionary<string, string> startupValues = null)
+        async public Task StartAsync(string adapterId, string correlationId, IDictionary<string, string> startupValues = null)
         {
             if (string.IsNullOrWhiteSpace(adapterId) || adapterId.Contains(' '))
             {
@@ -64,10 +59,10 @@ namespace SW.Serverless
 
             var adapterMetadata = await Install(adapterId);
 
-            await StartAsync(adapterId, adapterMetadata, startupValues);
+            await StartAsync(adapterId, adapterMetadata, correlationId, startupValues);
         }
 
-        async public Task StartAsync(string adapterId, string adapterPath, IDictionary<string, string> startupValues = null)
+        async public Task StartAsync(string adapterId, string correlationId, string adapterPath, IDictionary<string, string> startupValues = null)
         {
             if (!File.Exists(adapterPath))
                 throw new FileNotFoundException(adapterPath);
@@ -77,16 +72,17 @@ namespace SW.Serverless
                 LocalPath = adapterPath
             };
 
-            await StartAsync(adapterId, fakeMetadata, startupValues);
+            await StartAsync(adapterId, fakeMetadata, correlationId, startupValues);
 
         }
 
-        Task StartAsync(string adapterId, AdapterMetadata adapterMetadata, IDictionary<string, string> startupValues = null)
+        Task StartAsync(string adapterId, AdapterMetadata adapterMetadata, string correlationId, IDictionary<string, string> startupValues = null)
         {
             if (processStarted)
                 throw new Exception("Already started.");
 
             if (startupValues == null) startupValues = new Dictionary<string, string>();
+            startupValues.Add(Constants.CorrelationIdName, correlationId);
 
             adapterLogger = loggerFactory.CreateLogger($"{adaptersNamingPrefix}.{adapterId}".ToLower());
 
@@ -125,6 +121,11 @@ namespace SW.Serverless
             process.BeginErrorReadLine();
 
             return Task.CompletedTask;
+        }
+
+        public Task<IDictionary<string, StartupValue>> GetExpectedStartupValues()
+        {
+            return InvokeAsync<IDictionary<string, StartupValue>>(Constants.ExpectedCommand, null);
         }
 
         async public Task InvokeAsync(string command, object input, int commandTimeout = 0)
@@ -260,13 +261,11 @@ namespace SW.Serverless
 
                         foreach (var entry in archive.Entries)
                         {
-
                             var path = $"{adapterDiretoryPath}/{entry.FullName.Replace("\\", "/")}";
-                            var dirPath = Path.GetDirectoryName(path);
-                            Directory.CreateDirectory(dirPath);
+                            Directory.CreateDirectory(Path.GetDirectoryName(path));
                             entry.ExtractToFile(path);
                         }
-                        
+
 
                         //Process.Start("chmod", $"755 {adapterPath}").WaitForExit(5000);
                     }
