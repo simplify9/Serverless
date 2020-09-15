@@ -1,13 +1,3 @@
-# Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
-
-
----
-
-
-[![Build Status](https://dev.azure.com/simplify9/Github%20Pipelines/_apis/build/status/simplify9.Serverless?branchName=master)](https://dev.azure.com/simplify9/Github%20Pipelines/_build/latest?definitionId=156&branchName=master)
-
-[![Unit Tests](https://img.shields.io/azure-devops/tests/simplify9/Github%20Pipelines/156)](https://img.shields.io/azure-devops/tests/simplify9/Github%20Pipelines/156)
 
 
 |         |       |       |
@@ -15,21 +5,23 @@ TODO: Give a short introduction of your project. Let this section explain the ob
 | `SimplyWorks.Serverless` | [![NuGet](https://img.shields.io/nuget/v/SimplyWorks.Serverless.svg)](https://nuget.org/packages/SimplyWorks.Serverless) | [![Nuget](https://img.shields.io/nuget/dt/SimplyWorks.Serverless.svg)](https://nuget.org/packages/SimplyWorks.Serverless) |
 | `SimplyWorks.Serverless.Sdk` | [![NuGet](https://img.shields.io/nuget/v/SimplyWorks.Serverless.Sdk.svg)](https://nuget.org/packages/SimplyWorks.Serverless.Sdk) | [![Nuget](https://img.shields.io/nuget/dt/SimplyWorks.Serverless.Sdk.svg)](https://nuget.org/packages/SimplyWorks.Serverless.Sdk)
 
+[![Build Status](https://dev.azure.com/simplify9/Github%20Pipelines/_apis/build/status/simplify9.Serverless?branchName=master)](https://dev.azure.com/simplify9/Github%20Pipelines/_build/latest?definitionId=156&branchName=master)
 
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+[![Unit Tests](https://img.shields.io/azure-devops/tests/simplify9/Github%20Pipelines/156)](https://img.shields.io/azure-devops/tests/simplify9/Github%20Pipelines/156)
 
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+# SW.Serverless 
+*SW.Serverless* is a package that provides a library with functions to facilitate running an auto-scaling serverless service, made to aid users in deploying programs without the hassle of worrying about the underlying infrastructure. 
 
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
+*SW.Serverless* provides:
+1. Installing an adapter, utility, or program on the cloud
+2. Downloading and running your program
+3. Returning the results of said program during runtime
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+## Getting Started with SW.Serverless
+Once you have your program ready for installation, it's all smooth sailing from there. 
+1. Upload your program onto the [installer](https://github.com/simplify9/Serverless/blob/master/SW.Serverless.Installer/Program.cs)
+2. Watch as *SW.Serverless* handles the elbow grease, with its handy [runner](https://github.com/simplify9/Serverless/blob/master/SW.Serverless.Sdk/Runner.cs)
+3. 
+
+## Getting support 👷
+If you encounter any bugs, don't hesitate to submit an [issue](https://github.com/simplify9/Serverless/issues). We'll get back to you promptly!
