@@ -8,7 +8,7 @@
 
 [![Unit Tests](https://img.shields.io/azure-devops/tests/simplify9/Github%20Pipelines/156)](https://img.shields.io/azure-devops/tests/simplify9/Github%20Pipelines/156)
 
-[![Generic badge](https://img.shields.io/badge/<contributions>-<WELCOME>-<green>.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/contributions-WELCOME-<green>.svg)](https://shields.io/)
 
 # SW.Serverless
 *SW.Serverless* is a package that includes a library and functions made to allow users to write and deploy projects without worrying about the underlying infrastructure. 
