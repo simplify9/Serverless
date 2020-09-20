@@ -13,7 +13,7 @@
 
 ## Getting Started with SW.Serverless
 Once you have your program ready for installation it's all smooth sailing from there. 
-1. Upload your program onto the [installer](https://github.com/simplify9/Serverless/blob/master/SW.Serverless.Installer/Program.cs), running it in your app using a *key*. 
+1. Upload your program onto the [installer](https://github.com/simplify9/Serverless/blob/master/SW.Serverless.Installer/Program.cs), running it in your app using a key. 
 2. Once your program is installed, allow the [runner](https://github.com/simplify9/Serverless/blob/master/SW.Serverless.Sdk/Runner.cs) to handle all the elbow-grease.
 3. The user that previous handled the server that used *Serverless* returns the data for you. 
 
