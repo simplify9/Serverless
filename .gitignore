@@ -334,3 +334,6 @@ ASALocalRun/
 .vscode
 /SW.Serverless.SampleWeb/appsettings.Development.json
 .DS_STORE
+
+binaries
+out
