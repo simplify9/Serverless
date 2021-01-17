@@ -47,10 +47,6 @@ const arraysEqual = (a1: Connection[], a2: Connection[]) => {
 
 const getAppropiateBinary = () => `${path.join(__dirname, '../binaries')}/${process.platform}/serverless.exe`
 
-
-
-
-
 const Main = () => {
   process.noAsar = true;
 
@@ -318,7 +314,7 @@ const Main = () => {
             </Modal.Body>
 
             <Modal.Footer>
-              <Button onClick={() => setResult(null)} variant="secondary">Ok</Button>
+              <Button onClick={() => {setResult(null); setErrorOccured(false);} } variant="secondary">Ok</Button>
             </Modal.Footer>
           </Modal>
 

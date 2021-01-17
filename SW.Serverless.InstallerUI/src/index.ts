@@ -9,9 +9,10 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
 const createWindow = (): void => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    height: 650,
-    width: 800,
+    height: 900,
+    width: 1200,
     title: "Serverless Installer",
+
     frame: true,
     icon: "../icon.png",
     //resizable: false,
