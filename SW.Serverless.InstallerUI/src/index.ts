@@ -19,7 +19,8 @@ const createWindow = (): void => {
     webPreferences: {
       nodeIntegration: true,
       nodeIntegrationInWorker: true,
-      nodeIntegrationInSubFrames: true
+      nodeIntegrationInSubFrames: true,
+      devTools: false
     }
   });
 
