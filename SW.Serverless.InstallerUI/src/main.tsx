@@ -50,7 +50,7 @@ const getAppropiateBinary = () => `${path.join(__dirname, '../binaries')}/${proc
 const Main = () => {
   process.noAsar = true;
 
-  const optionsPath = path.join("./options.json");
+  const optionsPath = path.join(__dirname, "../options.json");
 
 
   const isReadyToInstall = () => {
@@ -145,9 +145,12 @@ const Main = () => {
     }
 
     else {
-      fs.writeFileSync(optionsPath, JSON.stringify({
+      fs.writeFile(optionsPath,JSON.stringify({
         connections: []
-      }));
+      }), (err) => {
+        if(err){
+        }
+      } );
     }
   })
 
