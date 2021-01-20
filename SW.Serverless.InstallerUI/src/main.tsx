@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from "react";
 import path from "path";
 import {Connection} from "./model"
-import {execFile, exec} from "child_process"
+import install from "./installer-cli-port"
 import fs from "fs";
 import {
   Container,
@@ -39,7 +39,6 @@ const arraysEqual = (a1: Connection[], a2: Connection[]) => {
   return true;
 }
 
-const getAppropiateBinary = () => `${path.join(__dirname, '../binaries')}/${process.platform}/serverless.exe`
 
 const Main = () => {
   process.noAsar = true;
@@ -63,59 +62,30 @@ const Main = () => {
 
   const [adapterId, changeAdapterId] = useState("");
   const [adapterPath, changeAdapterPath] = useState("");
-
   const [isRunning, setIsRunning] = useState(false);
   const [result, setResult] = useState<undefined | string>(undefined);
   const [errorOccured, setErrorOccured] = useState(false);
-
   const [connectionBucket, changeConnectionBucket] = useState("");
   const [connectionEndpoint, changeConnectionEndpoint] = useState("");
   const [connectionAccessKey, changeConnectionAccessKey] = useState("");
   const [connectionSecretKey, changeConnectionSecretKey] = useState("");
-
   const [stateConnectionsIsTruth, changeStateConnectionsIsTruth] = useState(false);
-
   const [chosenConnection, changeChosenConnection]: [c: Connection, cc: Function] = useState(undefined);
-
   const writeConnections = () => {
+
     fs.writeFileSync(optionsPath, JSON.stringify({
       connections: connections
     }))
   }
 
   const installAdapter = () => {
-    const args: string[] = [
-      `"${adapterPath}"`,
-      adapterId,
-      `-a ${connectionAccessKey}`,
-      `-s ${connectionSecretKey}`,
-      `-b ${connectionBucket}`,
-      `-u ${connectionEndpoint}`
-    ]
-
     setIsRunning(true);
-
-    console.log(`Running ${getAppropiateBinary()} ${args.join(' ')}...`);
-    exec(`${getAppropiateBinary()} ${args.join(' ')}`, (err, stdout, stderr) => {
-      if (stderr) {
-        console.error(stderr);
-        setIsRunning(false);
-        setErrorOccured(true);
-        setResult(err.message);
-      }
-      else if(stdout.includes("failed")){
-        const split = stdout.split('\n')
-        setErrorOccured(true);
-        setIsRunning(false);
-        setResult(stdout)
-      }
-      else {
-        setErrorOccured(false);
-        setIsRunning(false);
-        setResult(`Successfully installed adapter ${adapterId}!`);
-      }
-
+    install(adapterPath, adapterId, chosenConnection, (result, isError) => {
+      setErrorOccured(isError);
+      setIsRunning(false);
+      setResult(result);
     });
+
   }
 
 
