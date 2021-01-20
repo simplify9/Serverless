@@ -1,15 +1,10 @@
 {
-  "name": "installer-ui",
+  "name": "ServerlessInstaller",
   "productName": "installer-ui",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "An Installer for Serverless Adapters",
   "build": {
-    "extraResources": [
-      {
-        "from": "./binaries",
-        "to": "binaries"
-      }
-    ]
+    "extraResources": []
   },
   "main": ".webpack/main",
   "scripts": {
@@ -22,7 +17,7 @@
   "keywords": [],
   "author": {
     "name": "shaheen-s",
-    "email": "shaheensarafa17@gmail.com"
+    "email": "shaheen@simplify9.com"
   },
   "license": "MIT",
   "config": {
