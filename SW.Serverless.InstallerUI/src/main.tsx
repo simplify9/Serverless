@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from "react";
 import path from "path";
+import {Connection} from "./model"
 import {execFile, exec} from "child_process"
 import fs from "fs";
 import {
@@ -16,13 +17,6 @@ import {
 } from "react-bootstrap"
 
 
-interface Connection {
-  id: string
-  endpoint: string
-  bucket: string
-  accessKey: string
-  secretKey: string
-}
 
 
 const arraysEqual = (a1: Connection[], a2: Connection[]) => {
