@@ -1,6 +1,6 @@
 {
   "name": "ServerlessInstaller",
-  "productName": "installer-ui",
+  "productName": "ServerlessInstaller",
   "version": "1.0.0",
   "description": "An Installer for Serverless Adapters",
   "build": {
