@@ -109,12 +109,12 @@ const Main = () => {
     }
 
     else {
-      fs.writeFile(optionsPath,JSON.stringify({
+      fs.writeFile(optionsPath, JSON.stringify({
         connections: []
       }), (err) => {
-        if(err){
+        if (err) {
         }
-      } );
+      });
     }
   })
 
@@ -236,30 +236,33 @@ const Main = () => {
 
           </Row>
           <Row>
-            <Form className="w-100">
-              <FormGroup>
-                <Row>
-                  <Col>
-                    <Form.Control onChange={(e) => changeAdapterId(e.target.value)} value={adapterId} placeholder="Adapter Id" />
-                    <Form.Text className="text-muted">
-                      Example: infolink.mappers.mappername
+            <Col>
+              <Form className="w-100">
+                <FormGroup>
+                  <Row>
+                    <Col>
+                      <Form.Control onChange={(e) => changeAdapterId(e.target.value)} value={adapterId} placeholder="Adapter Id" />
+                      <Form.Text className="text-muted">
+                        Example: infolink.mappers.mappername
                   </Form.Text>
-                  </Col>
-                </Row>
-              </FormGroup>
-              <FormGroup>
-                <Row>
-                  <Col sm={4}>
-                    <Form.Label className="btn btn-primary">Choose Adapter
+                    </Col>
+                  </Row>
+                </FormGroup>
+                <FormGroup>
+                  <Row>
+                    <Col sm={2}>
+                      <Form.Label className="btn btn-primary">Choose Adapter
                       <Form.File onChange={(e: any) => {if (e.target.files[0]) changeAdapterPath(e.target.files[0].path)}} className="d-none" />
-                    </Form.Label>
-                  </Col>
-                  <Col>
-                    <Form.Control readOnly value={adapterPath} />
-                  </Col>
-                </Row>
-              </FormGroup>
-            </Form>
+                      </Form.Label>
+                    </Col>
+                    <Col>
+                      <Form.Control readOnly value={adapterPath? adapterPath : "Choose file from browsing."} />
+                    </Col>
+                  </Row>
+                </FormGroup>
+              </Form>
+
+            </Col>
           </Row>
           <Row>
             <Button disabled={!isReadyToInstall()} onClick={() => installAdapter()} className="mx-auto p-3 mb-5 h-100 mh-100 w-75 rounded btn-primary">
@@ -271,17 +274,17 @@ const Main = () => {
             </Button>
           </Row>
 
-          <Modal show={result? true : false}>
+          <Modal show={result ? true : false}>
             <Modal.Header closeButton>
               <Modal.Title>Result</Modal.Title>
             </Modal.Header>
 
             <Modal.Body>
-              <p style={{color: errorOccured? "red" : "green"}} >{result}</p>
+              <p style={{color: errorOccured ? "red" : "green"}} >{result}</p>
             </Modal.Body>
 
             <Modal.Footer>
-              <Button onClick={() => {setResult(null); setErrorOccured(false);} } variant="secondary">Ok</Button>
+              <Button onClick={() => {setResult(null); setErrorOccured(false);}} variant="secondary">Ok</Button>
             </Modal.Footer>
           </Modal>
 

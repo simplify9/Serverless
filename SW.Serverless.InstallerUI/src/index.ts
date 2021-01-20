@@ -12,15 +12,15 @@ const createWindow = (): void => {
     height: 900,
     width: 1200,
     title: "Serverless Installer",
-
     frame: true,
     icon: "../icon.png",
     //resizable: false,
     webPreferences: {
       nodeIntegration: true,
       nodeIntegrationInWorker: true,
+      webSecurity: false,
       nodeIntegrationInSubFrames: true,
-      devTools: false
+      devTools: true,
     }
   });
 

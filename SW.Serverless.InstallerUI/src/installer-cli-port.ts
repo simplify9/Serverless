@@ -2,14 +2,14 @@ import {exec} from "child_process"
 import aws from "aws-sdk"
 import fs from "fs"
 import path from "path"
-import archiver from "archiver"
+import AdmZip from "adm-zip"
 import {Connection} from "./model"
 
 
-const buildPublish = (projectPath: string, outputPath: string, callback: (outPath: string, zipPath: string) => void ) => {
+const buildPublish = (projectPath: string, outputPath: string, callback: (outPath: string) => void ) => {
   exec(`dotnet publish "${projectPath}" -o "${outputPath}"`, (err, stdout, stderr) => {
     if(!err){
-      callback(outputPath, path.join(__dirname, "../tmp/build.zip"));
+      callback(outputPath);
     }
     else {
       console.log(err);
@@ -19,24 +19,18 @@ const buildPublish = (projectPath: string, outputPath: string, callback: (outPat
   } )
 }
 
-const compress = (path: string, zipFileName: string, callback: (zipPath: string) => void) => {
-  const output = fs.createWriteStream(zipFileName);
-  const archive = archiver('zip', {
-    gzip: true,
-    zlib: {level: 9}
-  });
-  archive.pipe(output);
+const compress = (path: string, zipFileName: string, callback: (err: string) => void) => {
+  const zip = new AdmZip();
+
   const files = fs.readdirSync(path)
-  files.forEach(f => {
-    archive.file(f, {
-      name: f
-    });
-    archive.finalize();
+  files.forEach((f: any) => {
+    zip.addLocalFile(`${path}/${f}`);
   })
 
-  archive.on('end', () => {
-    callback(zipFileName);
-  } )
+  zip.writeZip(zipFileName, (err) => callback(err?.message) )
+
+  console.log("Finalizing..");
+
 }
 
 const pushToCloud = (zipPath: string, adapterId: string, entryAssembly: string, connection: Connection, callback: (err: string) => void ) => {
@@ -46,17 +40,19 @@ const pushToCloud = (zipPath: string, adapterId: string, entryAssembly: string, 
     secretAccessKey: connection.secretKey
   });
 
+  const blob = fs.readFileSync(zipPath);
+
   s3.upload({
     Bucket: connection.bucket,
     ContentType: "application/zip",
     Key: `adapters/${adapterId.toLowerCase()}`,
-    Body: fs.readFileSync(zipPath),
+    Body: blob,
     Metadata: {
       "EntryAssembly": entryAssembly,
       "Lang": 'dotnet'
     }
   }, {}, (err, data) => {
-    callback(err.message);
+    callback(err?.message);
   })
 }
 
@@ -66,20 +62,23 @@ const getEntryAssembly = (adapterPath: string) => {
 }
 
 const cleanup = (cleanUpPath: string) => {
-  fs.rmSync(cleanUpPath);
+  //fs.rmdirSync(cleanUpPath, {recursive: true} );
 }
 
 export default (adapterPath: string, adapterId: string, connection: Connection, callback: (result: string, isError: boolean) => void) => {
   const tmpPath = path.join(__dirname, "../tmp/build");
-  buildPublish(adapterPath, tmpPath, (outPath, zipPath) => {
-    compress(outPath, zipPath, (zipPath) => {
+  const zipPath = path.join(__dirname, "../tmp/build.zip");
+
+  buildPublish(adapterPath, tmpPath, (outPath) => {
+    compress(outPath, zipPath, () => {
+
       pushToCloud(zipPath, adapterId, getEntryAssembly(adapterPath), connection, (err) => {
         cleanup(path.join(__dirname, "../tmp"));
-        const result = err? err : `Successfully installer ${adapterId}`;
+        const result = err? err : `Successfully installed ${adapterId}`;
         callback(result, err? true : false);
       })
     })
-  } )
+  })
 }
 
 
