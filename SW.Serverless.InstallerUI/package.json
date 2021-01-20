@@ -1,15 +1,10 @@
 {
-  "name": "installer-ui",
-  "productName": "installer-ui",
+  "name": "ServerlessInstaller",
+  "productName": "ServerlessInstaller",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "An Installer for Serverless Adapters",
   "build": {
-    "extraResources": [
-      {
-        "from": "./binaries",
-        "to": "binaries"
-      }
-    ]
+    "extraResources": []
   },
   "main": ".webpack/main",
   "scripts": {
@@ -22,7 +17,7 @@
   "keywords": [],
   "author": {
     "name": "shaheen-s",
-    "email": "shaheensarafa17@gmail.com"
+    "email": "shaheen@simplify9.com"
   },
   "license": "MIT",
   "config": {
@@ -97,11 +92,15 @@
     "typescript": "^4.0.2"
   },
   "dependencies": {
+    "@types/adm-zip": "^0.4.33",
+    "adm-zip": "^0.5.1",
+    "aws-sdk": "^2.829.0",
     "bootstrap": "^4.5.3",
     "copy-webpack-plugin": "6.2.1",
     "electron-squirrel-startup": "^1.0.0",
     "react": "^17.0.1",
     "react-bootstrap": "^1.4.0",
-    "react-dom": "^17.0.1"
+    "react-dom": "^17.0.1",
+    "shell-path": "^2.1.0"
   }
 }

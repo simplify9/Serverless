@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from "react";
 import path from "path";
-import {execFile, exec} from "child_process"
+import {Connection} from "./model"
+import install from "./installer-cli-port"
 import fs from "fs";
 import {
   Container,
@@ -16,13 +17,6 @@ import {
 } from "react-bootstrap"
 
 
-interface Connection {
-  id: string
-  endpoint: string
-  bucket: string
-  accessKey: string
-  secretKey: string
-}
 
 
 const arraysEqual = (a1: Connection[], a2: Connection[]) => {
@@ -45,12 +39,11 @@ const arraysEqual = (a1: Connection[], a2: Connection[]) => {
   return true;
 }
 
-const getAppropiateBinary = () => `${path.join(__dirname, '../binaries')}/${process.platform}/serverless.exe`
 
 const Main = () => {
   process.noAsar = true;
 
-  const optionsPath = path.join("./options.json");
+  const optionsPath = path.join(__dirname, "../options.json");
 
 
   const isReadyToInstall = () => {
@@ -69,59 +62,30 @@ const Main = () => {
 
   const [adapterId, changeAdapterId] = useState("");
   const [adapterPath, changeAdapterPath] = useState("");
-
   const [isRunning, setIsRunning] = useState(false);
   const [result, setResult] = useState<undefined | string>(undefined);
   const [errorOccured, setErrorOccured] = useState(false);
-
   const [connectionBucket, changeConnectionBucket] = useState("");
   const [connectionEndpoint, changeConnectionEndpoint] = useState("");
   const [connectionAccessKey, changeConnectionAccessKey] = useState("");
   const [connectionSecretKey, changeConnectionSecretKey] = useState("");
-
   const [stateConnectionsIsTruth, changeStateConnectionsIsTruth] = useState(false);
-
   const [chosenConnection, changeChosenConnection]: [c: Connection, cc: Function] = useState(undefined);
-
   const writeConnections = () => {
+
     fs.writeFileSync(optionsPath, JSON.stringify({
       connections: connections
     }))
   }
 
   const installAdapter = () => {
-    const args: string[] = [
-      `"${adapterPath}"`,
-      adapterId,
-      `-a ${connectionAccessKey}`,
-      `-s ${connectionSecretKey}`,
-      `-b ${connectionBucket}`,
-      `-u ${connectionEndpoint}`
-    ]
-
     setIsRunning(true);
-
-    console.log(`Running ${getAppropiateBinary()} ${args.join(' ')}...`);
-    exec(`${getAppropiateBinary()} ${args.join(' ')}`, (err, stdout, stderr) => {
-      if (stderr) {
-        console.error(stderr);
-        setIsRunning(false);
-        setErrorOccured(true);
-        setResult(err.message);
-      }
-      else if(stdout.includes("failed")){
-        const split = stdout.split('\n')
-        setErrorOccured(true);
-        setIsRunning(false);
-        setResult(stdout)
-      }
-      else {
-        setErrorOccured(false);
-        setIsRunning(false);
-        setResult(`Successfully installed adapter ${adapterId}!`);
-      }
-
+    install(adapterPath, adapterId, chosenConnection, (result, isError) => {
+      setErrorOccured(isError);
+      setIsRunning(false);
+      setResult(result);
     });
+
   }
 
 
@@ -145,9 +109,12 @@ const Main = () => {
     }
 
     else {
-      fs.writeFileSync(optionsPath, JSON.stringify({
+      fs.writeFile(optionsPath, JSON.stringify({
         connections: []
-      }));
+      }), (err) => {
+        if (err) {
+        }
+      });
     }
   })
 
@@ -269,30 +236,33 @@ const Main = () => {
 
           </Row>
           <Row>
-            <Form className="w-100">
-              <FormGroup>
-                <Row>
-                  <Col>
-                    <Form.Control onChange={(e) => changeAdapterId(e.target.value)} value={adapterId} placeholder="Adapter Id" />
-                    <Form.Text className="text-muted">
-                      Example: infolink.mappers.mappername
+            <Col>
+              <Form className="w-100">
+                <FormGroup>
+                  <Row>
+                    <Col>
+                      <Form.Control onChange={(e) => changeAdapterId(e.target.value)} value={adapterId} placeholder="Adapter Id" />
+                      <Form.Text className="text-muted">
+                        Example: infolink.mappers.mappername
                   </Form.Text>
-                  </Col>
-                </Row>
-              </FormGroup>
-              <FormGroup>
-                <Row>
-                  <Col sm={4}>
-                    <Form.Label className="btn btn-primary">Choose Adapter
+                    </Col>
+                  </Row>
+                </FormGroup>
+                <FormGroup>
+                  <Row>
+                    <Col sm={2}>
+                      <Form.Label className="btn btn-primary">Choose Adapter
                       <Form.File onChange={(e: any) => {if (e.target.files[0]) changeAdapterPath(e.target.files[0].path)}} className="d-none" />
-                    </Form.Label>
-                  </Col>
-                  <Col>
-                    <Form.Control readOnly value={adapterPath} />
-                  </Col>
-                </Row>
-              </FormGroup>
-            </Form>
+                      </Form.Label>
+                    </Col>
+                    <Col>
+                      <Form.Control readOnly value={adapterPath? adapterPath : "Choose file from browsing."} />
+                    </Col>
+                  </Row>
+                </FormGroup>
+              </Form>
+
+            </Col>
           </Row>
           <Row>
             <Button disabled={!isReadyToInstall()} onClick={() => installAdapter()} className="mx-auto p-3 mb-5 h-100 mh-100 w-75 rounded btn-primary">
@@ -304,17 +274,17 @@ const Main = () => {
             </Button>
           </Row>
 
-          <Modal show={result? true : false}>
+          <Modal show={result ? true : false}>
             <Modal.Header closeButton>
               <Modal.Title>Result</Modal.Title>
             </Modal.Header>
 
             <Modal.Body>
-              <p style={{color: errorOccured? "red" : "green"}} >{result}</p>
+              <p style={{color: errorOccured ? "red" : "green"}} >{result}</p>
             </Modal.Body>
 
             <Modal.Footer>
-              <Button onClick={() => {setResult(null); setErrorOccured(false);} } variant="secondary">Ok</Button>
+              <Button onClick={() => {setResult(null); setErrorOccured(false);}} variant="secondary">Ok</Button>
             </Modal.Footer>
           </Modal>
 
