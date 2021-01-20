@@ -20,6 +20,7 @@ const createWindow = (): void => {
       nodeIntegrationInWorker: true,
       webSecurity: false,
       nodeIntegrationInSubFrames: true,
+      devTools: false
     }
   });
 
