@@ -105,6 +105,7 @@
     "electron-squirrel-startup": "^1.0.0",
     "react": "^17.0.1",
     "react-bootstrap": "^1.4.0",
-    "react-dom": "^17.0.1"
+    "react-dom": "^17.0.1",
+    "shell-path": "^2.1.0"
   }
 }

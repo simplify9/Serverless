@@ -6,6 +6,21 @@ import AdmZip from "adm-zip"
 import {Connection} from "./model"
 
 
+const shellPath = require("shell-path");
+const syncPath = () => {
+  	if (process.platform !== 'darwin') {
+		return;
+	}
+
+	process.env.PATH = shellPath.sync() || [
+		'./node_modules/.bin',
+		'/.nodebrew/current/bin',
+		'/usr/local/bin',
+		process.env.PATH
+	].join(':');
+}
+
+
 const buildPublish = (projectPath: string, outputPath: string, callback: (outPath: string) => void ) => {
   exec(`dotnet publish "${projectPath}" -o "${outputPath}"`, (err, stdout, stderr) => {
     if(!err){
@@ -18,6 +33,7 @@ const buildPublish = (projectPath: string, outputPath: string, callback: (outPat
     }
   } )
 }
+
 
 const compress = (path: string, zipFileName: string, callback: (err: string) => void) => {
   const zip = new AdmZip();
@@ -62,12 +78,14 @@ const getEntryAssembly = (adapterPath: string) => {
 }
 
 const cleanup = (cleanUpPath: string) => {
-  //fs.rmdirSync(cleanUpPath, {recursive: true} );
+  fs.rmdirSync(cleanUpPath, {recursive: true} );
 }
 
 export default (adapterPath: string, adapterId: string, connection: Connection, callback: (result: string, isError: boolean) => void) => {
   const tmpPath = path.join(__dirname, "../tmp/build");
   const zipPath = path.join(__dirname, "../tmp/build.zip");
+
+  syncPath();
 
   buildPublish(adapterPath, tmpPath, (outPath) => {
     compress(outPath, zipPath, () => {
