@@ -99,6 +99,7 @@
   "dependencies": {
     "@types/archiver": "^5.1.0",
     "archiver": "^5.2.0",
+    "aws-sdk": "^2.829.0",
     "bootstrap": "^4.5.3",
     "copy-webpack-plugin": "6.2.1",
     "electron-squirrel-startup": "^1.0.0",
