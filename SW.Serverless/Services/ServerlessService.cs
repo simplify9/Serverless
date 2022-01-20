@@ -1,9 +1,7 @@
-﻿using Amazon.S3.Model.Internal.MarshallTransformations;
-using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using SW.CloudFiles;
 using SW.PrimitiveTypes;
 using SW.Serverless.Sdk;
 using System;
@@ -33,19 +31,20 @@ namespace SW.Serverless
         private Timer invocationTimeoutTimer;
         private bool processStarted;
         private ILogger adapterLogger;
-
-        public ServerlessService(ServerlessOptions serverlessOptions, IMemoryCache memoryCache, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
+        private readonly ICloudFilesService cloudFilesService; 
+        public ServerlessService(ServerlessOptions serverlessOptions, IMemoryCache memoryCache, ILoggerFactory loggerFactory, IServiceProvider serviceProvider, ICloudFilesService cloudFilesService)
         {
             this.serverlessOptions = serverlessOptions;
             this.memoryCache = memoryCache;
             this.loggerFactory = loggerFactory;
+            this.cloudFilesService = cloudFilesService;
 
             logger = loggerFactory.CreateLogger<ServerlessService>();
 
-            if (serverlessOptions.CloudFilesOptions == null)
-            {
-                serverlessOptions.CloudFilesOptions = serviceProvider.GetService<CloudFilesOptions>();
-            }
+            // if (serverlessOptions.CloudFilesOptions == null)
+            // {
+            //     serverlessOptions.CloudFilesOptions = serviceProvider.GetService<CloudFilesOptions>();
+            // }
 
             //cloudFilesOptions = serverlessOptions.CloudFilesOptions;
         }
@@ -255,7 +254,7 @@ namespace SW.Serverless
                     Directory.CreateDirectory(adapterDiretoryPath);
                     try
                     {
-                        using var cloudFilesService = new CloudFilesService(serverlessOptions.CloudFilesOptions);
+                        //using var cloudFilesService = new CloudFilesService(serverlessOptions.CloudFilesOptions);
                         using var stream = await cloudFilesService.OpenReadAsync($"{serverlessOptions.AdapterRemotePath}/{adapterId}".ToLower());
                         using var archive = new ZipArchive(stream);
 
@@ -289,7 +288,7 @@ namespace SW.Serverless
             if (memoryCache.TryGetValue($"{adaptersNamingPrefix}.{adapterId}", out AdapterMetadata adapterMetadata))
                 return adapterMetadata;
 
-            using var cloudFilesService = new CloudFilesService(serverlessOptions.CloudFilesOptions);
+            //using var cloudFilesService = new CloudFilesService(serverlessOptions.CloudFilesOptions);
 
             var metaData = await cloudFilesService.GetMetadataAsync($"{serverlessOptions.AdapterRemotePath}/{adapterId}".ToLower());
             adapterMetadata = new AdapterMetadata
