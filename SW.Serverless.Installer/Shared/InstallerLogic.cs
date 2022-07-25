@@ -7,6 +7,9 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using System.Threading.Tasks;
+using Azure.Storage;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 
 namespace SW.Serverless.Installer.Shared
 {
@@ -62,7 +65,6 @@ namespace SW.Serverless.Installer.Shared
                         var entryName = Path.GetRelativePath(path, file);
                         archive.CreateEntryFromFile(file, entryName);
                     }
-
                 }
 
                 Console.WriteLine("Compressing files succeeded.");
@@ -70,38 +72,46 @@ namespace SW.Serverless.Installer.Shared
             }
             catch (Exception ex)
             {
-
                 Console.WriteLine($"Compressing files failed: {ex}");
                 return false;
-
             }
-
-
         }
 
         public async Task<bool> PushToCloudAsync(
             string zipFielPath,
             string adapterId,
             string entryAssembly,
+            string provider,
             string accessKeyId,
             string secretAccessKey,
             string serviceUrl,
             string bucketName)
         {
-
             try
             {
-
                 Console.WriteLine("Pushing to cloud...");
 
 
-                using var cloudService = new CloudFilesService(new CloudFilesOptions
+                var cloudFilesOptions = new CloudFilesOptions
                 {
                     AccessKeyId = accessKeyId,
                     SecretAccessKey = secretAccessKey,
                     ServiceUrl = serviceUrl,
                     BucketName = bucketName
-                });
+                };
+
+              
+
+                var isAzureStorage = provider?.ToLower() == "as";
+
+                
+                ICloudFilesService cloudService = isAzureStorage?
+                    new CloudFiles.AS.CloudFilesService(new BlobServiceClient(new Uri(cloudFilesOptions.ServiceUrl),
+                        new StorageSharedKeyCredential(cloudFilesOptions.AccessKeyId,
+                            cloudFilesOptions.SecretAccessKey)).CreateBlobContainer(
+                        cloudFilesOptions.BucketName,
+                        PublicAccessType.BlobContainer))
+                    : new CloudFiles.S3.CloudFilesService(cloudFilesOptions);
 
                 using var zipFileStream = File.OpenRead(zipFielPath);
 
@@ -110,15 +120,14 @@ namespace SW.Serverless.Installer.Shared
                     ContentType = "application/zip",
                     Key = $"adapters/{adapterId}".ToLower(),
                     Metadata = new Dictionary<string, string>
-                        {
-                            {"EntryAssembly", entryAssembly},
-                            {"Lang", "dotnet" }
-                        }
+                    {
+                        { "EntryAssembly", entryAssembly },
+                        { "Lang", "dotnet" }
+                    }
                 });
-
+                if (!isAzureStorage) (cloudService as CloudFiles.S3.CloudFilesService)?.Dispose();
                 Console.WriteLine("Pushing to cloud succeeded.");
                 return true;
-
             }
             catch (Exception ex)
             {
@@ -131,42 +140,56 @@ namespace SW.Serverless.Installer.Shared
             string zipFielPath,
             string adapterId,
             string entryAssembly,
+            string provider,
             string accessKeyId,
             string secretAccessKey,
             string serviceUrl,
             string bucketName)
         {
-
             try
             {
-
                 Console.WriteLine("Pushing to cloud...");
 
 
-                using var cloudService = new CloudFilesService(new CloudFilesOptions
+                var cloudFilesOptions = new CloudFilesOptions
                 {
                     AccessKeyId = accessKeyId,
                     SecretAccessKey = secretAccessKey,
                     ServiceUrl = serviceUrl,
                     BucketName = bucketName
-                });
+                };
 
                 using var zipFileStream = File.OpenRead(zipFielPath);
+
+                var isAzureStorage = provider?.ToLower() == "as";
+
+                
+                ICloudFilesService cloudService = isAzureStorage?
+                     new CloudFiles.AS.CloudFilesService(new BlobServiceClient(new Uri(cloudFilesOptions.ServiceUrl),
+                        new StorageSharedKeyCredential(cloudFilesOptions.AccessKeyId,
+                            cloudFilesOptions.SecretAccessKey)).CreateBlobContainer(
+                        cloudFilesOptions.BucketName,
+                        PublicAccessType.BlobContainer))
+                    : new CloudFiles.S3.CloudFilesService(cloudFilesOptions);
+                
+                
+
 
                 cloudService.WriteAsync(zipFileStream, new WriteFileSettings
                 {
                     ContentType = "application/zip",
                     Key = $"adapters/{adapterId}".ToLower(),
                     Metadata = new Dictionary<string, string>
-                        {
-                            {"EntryAssembly", entryAssembly},
-                            {"Lang", "dotnet" }
-                        }
+                    {
+                        { "EntryAssembly", entryAssembly },
+                        { "Lang", "dotnet" }
+                    }
                 }).Wait();
-
+                
+                if (!isAzureStorage) (cloudService as CloudFiles.S3.CloudFilesService)?.Dispose();
+                
                 Console.WriteLine("Pushing to cloud succeeded.");
                 return true;
-
             }
             catch (Exception ex)
             {
@@ -175,6 +198,7 @@ namespace SW.Serverless.Installer.Shared
             }
         }
 
+
         public bool Cleanup(string tempPath)
         {
             try
@@ -182,15 +206,12 @@ namespace SW.Serverless.Installer.Shared
                 Console.WriteLine("Cleaning up...");
                 Directory.Delete(tempPath, true);
                 return true;
-
             }
             catch (Exception ex)
             {
-
                 Console.WriteLine($"Cleaning up failed: {ex}");
                 return false;
             }
-
         }
 
         public void OutputDataReceived(object sender, DataReceivedEventArgs args)

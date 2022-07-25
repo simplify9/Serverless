@@ -9,6 +9,8 @@ namespace SW.Serverless.Installer
     {
         //[Option('v', "verbose", Required = false, HelpText = "Set output to verbose messages.")]
         //public bool Verbose { get; set; }
+        [Option('p', "provider", HelpText = "Provider for storage (azure/s3).")]
+        public string Provider { get; set; }
 
         [Option('a', "accesskey", Required = true, HelpText = "Access key for storage.")]
         public string AccessKeyId { get; set; }
