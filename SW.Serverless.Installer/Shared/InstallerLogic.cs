@@ -165,18 +165,25 @@ namespace SW.Serverless.Installer.Shared
                     BucketName = bucketName
                 };
 
-                using var zipFileStream = File.OpenRead(zipFielPath);
-
                 var isAzureStorage = provider?.ToLower() == "as";
+                ICloudFilesService cloudService = null;
 
-                
-                ICloudFilesService cloudService = isAzureStorage?
-                     new CloudFiles.AS.CloudFilesService(new BlobServiceClient(new Uri(cloudFilesOptions.ServiceUrl),
+                if (isAzureStorage)
+                {
+                    BlobContainerClient blobContainerClient  = new BlobServiceClient(new Uri(cloudFilesOptions.ServiceUrl),
                         new StorageSharedKeyCredential(cloudFilesOptions.AccessKeyId,
-                            cloudFilesOptions.SecretAccessKey)).CreateBlobContainer(
-                        cloudFilesOptions.BucketName,
-                        PublicAccessType.BlobContainer))
-                    : new CloudFiles.S3.CloudFilesService(cloudFilesOptions);
+                            cloudFilesOptions.SecretAccessKey)).GetBlobContainerClient(cloudFilesOptions.BucketName);
+
+                    cloudService = blobContainerClient.Exists() ? new CloudFiles.AS.CloudFilesService(blobContainerClient) : new CloudFiles.AS.CloudFilesService(
+                        new BlobServiceClient(new Uri(cloudFilesOptions.ServiceUrl),
+                            new StorageSharedKeyCredential(cloudFilesOptions.AccessKeyId,
+                                cloudFilesOptions.SecretAccessKey)).CreateBlobContainer(cloudFilesOptions.BucketName));
+
+                }
+                else
+                    cloudService = new CloudFiles.S3.CloudFilesService(cloudFilesOptions);
+
+                using var zipFileStream = File.OpenRead(zipFielPath);
                 
                 
 
