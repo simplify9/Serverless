@@ -12,7 +12,6 @@ namespace SW.Serverless.UnitTests
     [TestClass]
     public class UnitTest1
     {
-
         static TestServer server;
 
 
@@ -48,7 +47,7 @@ namespace SW.Serverless.UnitTests
         [TestMethod]
         async public Task TestString()
         {
-            var serverless =  server.Host.Services.GetService<IServerlessService>();
+            var serverless = server.Host.Services.GetService<IServerlessService>();
 
             await serverless.StartAsync("unittests.adapter.5", null);
 
@@ -76,8 +75,8 @@ namespace SW.Serverless.UnitTests
 
             await serverless.StartAsync("unittests.adapter.5", null);
 
-            var result = await serverless.InvokeAsync<RemoteBlob>("TestObject", new RemoteBlob 
-            { 
+            var result = await serverless.InvokeAsync<RemoteBlob>("TestObject", new RemoteBlob
+            {
                 Location = "loc",
                 MimeType = "test",
                 Name = "name1",
@@ -97,6 +96,30 @@ namespace SW.Serverless.UnitTests
             var result = await serverless.InvokeAsync<RemoteBlob>("TestObject", null);
 
             Assert.IsNull(result);
+        }
+
+        [TestMethod]
+        async public Task TestGetExpectedStartupValues()
+        {
+            var serverless = server.Host.Services.GetService<IServerlessService>();
+
+            await serverless.StartAsync("unittests.adapter.test", null);
+
+            var result = await serverless.GetExpectedStartupValues();
+
+            Assert.IsNotNull(result);
+        }
+
+        [TestMethod]
+        async public Task TestGetExpectedStartupValues_PrivateValues()
+        {
+            var serverless = server.Host.Services.GetService<IServerlessService>();
+
+            await serverless.StartAsync("unittests.adapter.test", null);
+
+            var result = await serverless.GetExpectedStartupValues();
+
+            Assert.IsNotNull(result);
         }
     }
 }
