@@ -30,12 +30,12 @@ namespace SW.Serverless.Desktop
     /// </summary>
     public partial class MainWindow : Window
     {
-
         private IDictionary<string, CloudConnection> connections;
         private CloudConnection chosenConnection;
         public string chosenAdapterPath { get; set; } = string.Empty;
         private Options options;
         private InstallerLogic installer;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -49,12 +49,14 @@ namespace SW.Serverless.Desktop
             {
                 connectionListBox.Items.Clear();
             }
+
             var key = $"{con.ServiceUrl}";
             var protoIndex = key.LastIndexOf("://");
-            if( protoIndex != -1)
+            if (protoIndex != -1)
             {
                 key = key.Insert(protoIndex + 3, $"{con.BucketName}.");
             }
+
             if (connections.TryAdd(key, con))
             {
                 connectionListBox.Items.Add(new ListBoxItem { Content = key });
@@ -65,26 +67,24 @@ namespace SW.Serverless.Desktop
         {
             this.options = GetOptionsFromJson();
             connections = new Dictionary<string, CloudConnection>();
-            if(options.CloudConnections.Any())
-                foreach(var con in options.CloudConnections)
+            if (options.CloudConnections.Any())
+                foreach (var con in options.CloudConnections)
                     addConnection(con);
             else
                 connectionListBox.Items.Add(new TextBlock { Text = "Add connection using below menu" });
-
         }
 
         private void chooseConnection(object sender, RoutedEventArgs e)
         {
-            if(connectionListBox.SelectedItem is ListBoxItem item)
+            if (connectionListBox.SelectedItem is ListBoxItem item)
             {
                 string key = item.Content.ToString();
                 chosenConnection = connections[key];
             }
-            
         }
+
         private void addConnectionToJson(object sender, RoutedEventArgs e)
         {
-
             Options current = GetOptionsFromJson();
             var connection = new CloudConnection
             {
@@ -97,7 +97,6 @@ namespace SW.Serverless.Desktop
             string optionsJson = JsonConvert.SerializeObject(current);
             File.WriteAllText("./settings.json", optionsJson);
             addConnection(connection);
-
         }
 
         private Options GetOptionsFromJson()
@@ -112,24 +111,25 @@ namespace SW.Serverless.Desktop
                 File.WriteAllText("./settings.json", JsonConvert.SerializeObject(new Options()));
                 return new Options();
             }
-            
         }
 
         private async void installAdapter(object sender, RoutedEventArgs e)
         {
             string adapterId = adapterIdText.Text;
             string projectPath = chosenAdapterPath;
-            if(chosenConnection == null)
+            if (chosenConnection == null)
             {
                 errors.Text = $"\nSelect a connection.";
                 return;
             }
-            if(string.IsNullOrEmpty(chosenAdapterPath))
+
+            if (string.IsNullOrEmpty(chosenAdapterPath))
             {
                 errors.Text = $"\nBrowse or paste adapter path above";
                 return;
             }
-            if(string.IsNullOrEmpty(adapterId))
+
+            if (string.IsNullOrEmpty(adapterId))
             {
                 errors.Text = $"\nAdapter Id is required.";
                 return;
@@ -145,7 +145,7 @@ namespace SW.Serverless.Desktop
 
             var zipFileName = System.IO.Path.Combine(tempPath, $"{adapterId}");
 
-            if (!installer.Compress(tempPath, zipFileName)) 
+            if (!installer.Compress(tempPath, zipFileName))
             {
                 errors.Text = "Compression failed.";
                 return;
@@ -154,7 +154,9 @@ namespace SW.Serverless.Desktop
             var projectFileName = System.IO.Path.GetFileName(projectPath);
             var entryAssembly = $"{projectFileName.Remove(projectFileName.LastIndexOf('.'))}.dll";
 
-            if (await installer.PushToCloudAsync(zipFileName, adapterId, entryAssembly, chosenConnection.AccessKeyId, chosenConnection.SecretAccessKey, chosenConnection.ServiceUrl, chosenConnection.BucketName))
+            if (await installer.PushToCloudAsync(zipFileName, adapterId, entryAssembly, "",
+                    chosenConnection.AccessKeyId,
+                    chosenConnection.SecretAccessKey, chosenConnection.ServiceUrl, chosenConnection.BucketName))
             {
                 errors.Text = "Install successful. You can install another adapter.";
             }
@@ -168,7 +170,6 @@ namespace SW.Serverless.Desktop
             {
                 errors.Text = "Cleanup Failed. Check remaining files.";
             }
-
         }
 
         private void chooseAdapter(object sender, RoutedEventArgs args)
@@ -178,7 +179,7 @@ namespace SW.Serverless.Desktop
             dialogue.CheckFileExists = true;
             dialogue.ValidateNames = true;
             dialogue.ShowDialog();
-            if(dialogue.FileNames != null && dialogue.FileNames.Length > 0)
+            if (dialogue.FileNames != null && dialogue.FileNames.Length > 0)
             {
                 chosenAdapterPath = dialogue.FileName;
                 adapterPathText.Text = dialogue.FileName;
