@@ -1,27 +1,27 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <PackageId>SimplyWorks.Serverless.Sdk</PackageId>
-    <Authors>Simplify9</Authors>
-    <Product>SimplyWorks.Serverless.Sdk</Product>
-    <PackageProjectUrl>https://github.com/simplify9/Serverless</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/simplify9/Serverless</RepositoryUrl>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>    
-    <PackageIcon>icon.png</PackageIcon>
-    <Copyright>Simplify9</Copyright>
-    <Company>Simplify9</Company>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net6</TargetFramework>
+        <PackageId>SimplyWorks.Serverless.Sdk</PackageId>
+        <Authors>Simplify9</Authors>
+        <Product>SimplyWorks.Serverless.Sdk</Product>
+        <PackageProjectUrl>https://github.com/simplify9/Serverless</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/simplify9/Serverless</RepositoryUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageIcon>icon.png</PackageIcon>
+        <Copyright>Simplify9</Copyright>
+        <Company>Simplify9</Company>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="SimplyWorks.PrimitiveTypes" Version="2.0.113" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="../icon.png">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.2"/>
+        <PackageReference Include="SimplyWorks.PrimitiveTypes" Version="6.0.1"/>
+    </ItemGroup>
+    <ItemGroup>
+        <None Include="../icon.png">
+            <Pack>True</Pack>
+            <PackagePath></PackagePath>
+        </None>
+    </ItemGroup>
 
 </Project>

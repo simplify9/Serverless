@@ -1,24 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net6</TargetFramework>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="adapters\**" />
-    <Content Remove="adapters\**" />
-    <EmbeddedResource Remove="adapters\**" />
-    <None Remove="adapters\**" />
-  </ItemGroup>
+    <ItemGroup>
+        <Compile Remove="adapters\**"/>
+        <Content Remove="adapters\**"/>
+        <EmbeddedResource Remove="adapters\**"/>
+        <None Remove="adapters\**"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="SimplyWorks.CloudFiles.Extensions" Version="5.0.2" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="SimplyWorks.CloudFiles.AS" Version="5.0.17"/>
+        <PackageReference Include="SimplyWorks.CloudFiles.Extensions" Version="5.0.2"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\SW.Serverless\SW.Serverless.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\SW.Serverless\SW.Serverless.csproj"/>
+    </ItemGroup>
 
 
 </Project>
