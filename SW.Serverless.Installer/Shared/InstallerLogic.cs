@@ -25,9 +25,6 @@ namespace SW.Serverless.Installer.Shared
                 StartInfo = new ProcessStartInfo("dotnet")
                 {
                     Arguments = $"publish \"{projectPath}\" -o \"{outputPath}\"",
-                    //WorkingDirectory = Path.GetDirectoryName(adapterpath),
-                    //UseShellExecute = false,
-                    //RedirectStandardInput = true,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                 }
@@ -99,22 +96,25 @@ namespace SW.Serverless.Installer.Shared
                     ServiceUrl = serviceUrl,
                     BucketName = bucketName
                 };
-                
+
 
                 var isAzureStorage = provider?.ToLower() == "as";
                 ICloudFilesService cloudService = null;
 
                 if (isAzureStorage)
                 {
-                    BlobContainerClient blobContainerClient  = new BlobServiceClient(new Uri(cloudFilesOptions.ServiceUrl),
+                    BlobContainerClient blobContainerClient = new BlobServiceClient(
+                        new Uri(cloudFilesOptions.ServiceUrl),
                         new StorageSharedKeyCredential(cloudFilesOptions.AccessKeyId,
                             cloudFilesOptions.SecretAccessKey)).GetBlobContainerClient(cloudFilesOptions.BucketName);
 
-                    cloudService = blobContainerClient.Exists() ? new CloudFiles.AS.CloudFilesService(blobContainerClient) : new CloudFiles.AS.CloudFilesService(
-                        new BlobServiceClient(new Uri(cloudFilesOptions.ServiceUrl),
-                            new StorageSharedKeyCredential(cloudFilesOptions.AccessKeyId,
-                                cloudFilesOptions.SecretAccessKey)).CreateBlobContainer(cloudFilesOptions.BucketName));
-
+                    cloudService = await blobContainerClient.ExistsAsync()
+                        ? new CloudFiles.AS.CloudFilesService(blobContainerClient)
+                        : new CloudFiles.AS.CloudFilesService(
+                            await new BlobServiceClient(new Uri(cloudFilesOptions.ServiceUrl),
+                                    new StorageSharedKeyCredential(cloudFilesOptions.AccessKeyId,
+                                        cloudFilesOptions.SecretAccessKey))
+                                .CreateBlobContainerAsync(cloudFilesOptions.BucketName));
                 }
                 else
                     cloudService = new CloudFiles.S3.CloudFilesService(cloudFilesOptions);
@@ -128,7 +128,8 @@ namespace SW.Serverless.Installer.Shared
                     Metadata = new Dictionary<string, string>
                     {
                         { "EntryAssembly", entryAssembly },
-                        { "Lang", "dotnet" }
+                        { "Lang", "dotnet" },
+                        { "Timestamp", DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ") }
                     }
                 });
                 if (!isAzureStorage) (cloudService as CloudFiles.S3.CloudFilesService)?.Dispose();
@@ -170,22 +171,23 @@ namespace SW.Serverless.Installer.Shared
 
                 if (isAzureStorage)
                 {
-                    BlobContainerClient blobContainerClient  = new BlobServiceClient(new Uri(cloudFilesOptions.ServiceUrl),
+                    BlobContainerClient blobContainerClient = new BlobServiceClient(
+                        new Uri(cloudFilesOptions.ServiceUrl),
                         new StorageSharedKeyCredential(cloudFilesOptions.AccessKeyId,
                             cloudFilesOptions.SecretAccessKey)).GetBlobContainerClient(cloudFilesOptions.BucketName);
 
-                    cloudService = blobContainerClient.Exists() ? new CloudFiles.AS.CloudFilesService(blobContainerClient) : new CloudFiles.AS.CloudFilesService(
-                        new BlobServiceClient(new Uri(cloudFilesOptions.ServiceUrl),
-                            new StorageSharedKeyCredential(cloudFilesOptions.AccessKeyId,
-                                cloudFilesOptions.SecretAccessKey)).CreateBlobContainer(cloudFilesOptions.BucketName));
-
+                    cloudService = blobContainerClient.Exists()
+                        ? new CloudFiles.AS.CloudFilesService(blobContainerClient)
+                        : new CloudFiles.AS.CloudFilesService(
+                            new BlobServiceClient(new Uri(cloudFilesOptions.ServiceUrl),
+                                    new StorageSharedKeyCredential(cloudFilesOptions.AccessKeyId,
+                                        cloudFilesOptions.SecretAccessKey))
+                                .CreateBlobContainer(cloudFilesOptions.BucketName));
                 }
                 else
                     cloudService = new CloudFiles.S3.CloudFilesService(cloudFilesOptions);
 
                 using var zipFileStream = File.OpenRead(zipFielPath);
-                
-                
 
 
                 cloudService.WriteAsync(zipFileStream, new WriteFileSettings
@@ -195,12 +197,13 @@ namespace SW.Serverless.Installer.Shared
                     Metadata = new Dictionary<string, string>
                     {
                         { "EntryAssembly", entryAssembly },
-                        { "Lang", "dotnet" }
+                        { "Lang", "dotnet" },
+                        { "Timestamp", DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ") }
                     }
                 }).Wait();
-                
+
                 if (!isAzureStorage) (cloudService as CloudFiles.S3.CloudFilesService)?.Dispose();
-                
+
                 Console.WriteLine("Pushing to cloud succeeded.");
                 return true;
             }
