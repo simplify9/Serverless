@@ -24,6 +24,11 @@ namespace SW.Serverless.Installer
         [Option('u', "url", Required = true, HelpText = "Service Url for storage.")]
         public string ServiceUrl { get; set; }
 
+        [Option('v', "version",
+            HelpText =
+                "Semantic version in the format major.minor.patch, or specify 'major', 'minor', or 'patch' to auto-increment the respective part.")]
+        public string Version { get; set; }
+
         [Value(0, Required = true, HelpText = "Path to project file (csproj)")]
         public string ProjectPath { get; set; }
 
