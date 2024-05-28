@@ -1,21 +1,20 @@
-﻿using SW.CloudFiles;
-using SW.PrimitiveTypes;
+﻿using SW.PrimitiveTypes;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Text;
+using System.Linq;
 using System.Threading.Tasks;
 using Azure.Storage;
 using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
+using SW.CloudFiles.AS;
 
 namespace SW.Serverless.Installer.Shared
 {
     public class InstallerLogic
     {
-        public bool BuildPublish(string projectPath, string outputPath)
+        public static bool BuildPublish(string projectPath, string outputPath)
         {
             Console.WriteLine("Building and publishing...");
 
@@ -35,7 +34,6 @@ namespace SW.Serverless.Installer.Shared
             process.Start();
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
-
             process.WaitForExit();
 
             var result = process.ExitCode == 0;
@@ -45,14 +43,12 @@ namespace SW.Serverless.Installer.Shared
             return result;
         }
 
-        public bool Compress(string path, string zipFileName)
+        public static bool Compress(string path, string zipFileName)
         {
             try
             {
                 Console.WriteLine("Compressing files...");
-
                 var filesToCompress = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
-
                 {
                     using var stream = File.OpenWrite(zipFileName);
                     using var archive = new ZipArchive(stream, ZipArchiveMode.Create);
@@ -63,7 +59,6 @@ namespace SW.Serverless.Installer.Shared
                         archive.CreateEntryFromFile(file, entryName);
                     }
                 }
-
                 Console.WriteLine("Compressing files succeeded.");
                 return true;
             }
@@ -74,90 +69,82 @@ namespace SW.Serverless.Installer.Shared
             }
         }
 
-        public async Task<bool> PushToCloudAsync(
-            string zipFielPath,
-            string adapterId,
-            string entryAssembly,
-            string provider,
-            string accessKeyId,
-            string secretAccessKey,
-            string serviceUrl,
-            string bucketName)
+        private static async Task<CloudFilesService> PushToAzureStorageCloud(CloudFilesOptions cloudFilesOptions)
         {
-            try
-            {
-                Console.WriteLine("Pushing to cloud...");
+            var blobContainerClient = new BlobServiceClient(
+                new Uri(cloudFilesOptions.ServiceUrl),
+                new StorageSharedKeyCredential(cloudFilesOptions.AccessKeyId,
+                    cloudFilesOptions.SecretAccessKey)).GetBlobContainerClient(cloudFilesOptions.BucketName);
 
-
-                var cloudFilesOptions = new CloudFilesOptions
-                {
-                    AccessKeyId = accessKeyId,
-                    SecretAccessKey = secretAccessKey,
-                    ServiceUrl = serviceUrl,
-                    BucketName = bucketName
-                };
-
-
-                var isAzureStorage = provider?.ToLower() == "as";
-                ICloudFilesService cloudService = null;
-
-                if (isAzureStorage)
-                {
-                    BlobContainerClient blobContainerClient = new BlobServiceClient(
-                        new Uri(cloudFilesOptions.ServiceUrl),
-                        new StorageSharedKeyCredential(cloudFilesOptions.AccessKeyId,
-                            cloudFilesOptions.SecretAccessKey)).GetBlobContainerClient(cloudFilesOptions.BucketName);
-
-                    cloudService = await blobContainerClient.ExistsAsync()
-                        ? new CloudFiles.AS.CloudFilesService(blobContainerClient)
-                        : new CloudFiles.AS.CloudFilesService(
-                            await new BlobServiceClient(new Uri(cloudFilesOptions.ServiceUrl),
-                                    new StorageSharedKeyCredential(cloudFilesOptions.AccessKeyId,
-                                        cloudFilesOptions.SecretAccessKey))
-                                .CreateBlobContainerAsync(cloudFilesOptions.BucketName));
-                }
-                else
-                    cloudService = new CloudFiles.S3.CloudFilesService(cloudFilesOptions);
-
-                using var zipFileStream = File.OpenRead(zipFielPath);
-
-                await cloudService.WriteAsync(zipFileStream, new WriteFileSettings
-                {
-                    ContentType = "application/zip",
-                    Key = $"adapters/{adapterId}".ToLower(),
-                    Metadata = new Dictionary<string, string>
-                    {
-                        { "EntryAssembly", entryAssembly },
-                        { "Lang", "dotnet" },
-                        { "Timestamp", DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ") }
-                    }
-                });
-                if (!isAzureStorage) (cloudService as CloudFiles.S3.CloudFilesService)?.Dispose();
-                Console.WriteLine("Pushing to cloud succeeded.");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Pushing to cloud failed: {ex}");
-                return false;
-            }
+            return await blobContainerClient.ExistsAsync()
+                ? new CloudFilesService(blobContainerClient)
+                : new CloudFilesService(
+                    await new BlobServiceClient(new Uri(cloudFilesOptions.ServiceUrl),
+                            new StorageSharedKeyCredential(cloudFilesOptions.AccessKeyId,
+                                cloudFilesOptions.SecretAccessKey))
+                        .CreateBlobContainerAsync(cloudFilesOptions.BucketName));
         }
 
-        public bool PushToCloud(
-            string zipFielPath,
+        private static Task<CloudFiles.S3.CloudFilesService> PushToS3Cloud(CloudFilesOptions cloudFilesOptions)
+        {
+            return Task.FromResult(new CloudFiles.S3.CloudFilesService(cloudFilesOptions));
+        }
+
+        private static async Task UploadVersioned(ICloudFilesService cloudService, Stream zipFileStream,
+            string adapterId,
+            string entryAssembly, string version)
+        {
+            var dir = $"adapters/{adapterId}".ToLower();
+            var list = (await cloudService.ListAsync(dir)).ToList();
+            var fileName = Semver.GetNewVersion(version, list.Select(i => i.Key.Split("/").Last()).ToList());
+            var path = $"{dir}/{fileName}";
+            Console.WriteLine($"Uploading to {path} Versioned");
+            await cloudService.WriteAsync(zipFileStream, new WriteFileSettings
+            {
+                ContentType = "application/zip",
+                Key = path,
+                Metadata = new Dictionary<string, string>
+                {
+                    { "EntryAssembly", entryAssembly },
+                    { "Lang", "dotnet" },
+                    { "Timestamp", DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ") }
+                }
+            });
+        }
+
+        private static async Task UploadLegacy(ICloudFilesService cloudService, Stream zipFileStream, string adapterId,
+            string entryAssembly)
+        {
+            var path = $"adapters/{adapterId}".ToLower();
+            Console.WriteLine($"Uploading to {path}");
+            await cloudService.WriteAsync(zipFileStream, new WriteFileSettings
+            {
+                ContentType = "application/zip",
+                Key = path,
+                Metadata = new Dictionary<string, string>
+                {
+                    { "EntryAssembly", entryAssembly },
+                    { "Lang", "dotnet" },
+                    { "Timestamp", DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ") }
+                }
+            });
+        }
+
+
+        public static async Task<bool> PushToCloud(
+            string zipFilePath,
             string adapterId,
             string entryAssembly,
             string provider,
             string accessKeyId,
             string secretAccessKey,
             string serviceUrl,
-            string bucketName)
+            string bucketName,
+            string version)
         {
             try
             {
-                Console.WriteLine("Pushing to cloud...");
-
-
+                Console.WriteLine("Starting...");
                 var cloudFilesOptions = new CloudFilesOptions
                 {
                     AccessKeyId = accessKeyId,
@@ -165,45 +152,28 @@ namespace SW.Serverless.Installer.Shared
                     ServiceUrl = serviceUrl,
                     BucketName = bucketName
                 };
-
-                var isAzureStorage = provider?.ToLower() == "as";
-                ICloudFilesService cloudService = null;
-
-                if (isAzureStorage)
+                ICloudFilesService cloudService = provider?.ToLower() switch
                 {
-                    BlobContainerClient blobContainerClient = new BlobServiceClient(
-                        new Uri(cloudFilesOptions.ServiceUrl),
-                        new StorageSharedKeyCredential(cloudFilesOptions.AccessKeyId,
-                            cloudFilesOptions.SecretAccessKey)).GetBlobContainerClient(cloudFilesOptions.BucketName);
+                    "as" => await PushToAzureStorageCloud(cloudFilesOptions),
+                    "s3" => await PushToS3Cloud(cloudFilesOptions),
+                    _ => await PushToS3Cloud(cloudFilesOptions),
+                };
+                Console.WriteLine("Reading file...");
 
-                    cloudService = blobContainerClient.Exists()
-                        ? new CloudFiles.AS.CloudFilesService(blobContainerClient)
-                        : new CloudFiles.AS.CloudFilesService(
-                            new BlobServiceClient(new Uri(cloudFilesOptions.ServiceUrl),
-                                    new StorageSharedKeyCredential(cloudFilesOptions.AccessKeyId,
-                                        cloudFilesOptions.SecretAccessKey))
-                                .CreateBlobContainer(cloudFilesOptions.BucketName));
+                await using var zipFileStream = File.OpenRead(zipFilePath);
+                Console.WriteLine("Pushing to cloud...");
+
+                if (string.IsNullOrWhiteSpace(version))
+                {
+                    await UploadLegacy(cloudService, zipFileStream, adapterId, entryAssembly);
                 }
                 else
-                    cloudService = new CloudFiles.S3.CloudFilesService(cloudFilesOptions);
-
-                using var zipFileStream = File.OpenRead(zipFielPath);
-
-
-                cloudService.WriteAsync(zipFileStream, new WriteFileSettings
                 {
-                    ContentType = "application/zip",
-                    Key = $"adapters/{adapterId}".ToLower(),
-                    Metadata = new Dictionary<string, string>
-                    {
-                        { "EntryAssembly", entryAssembly },
-                        { "Lang", "dotnet" },
-                        { "Timestamp", DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ") }
-                    }
-                }).Wait();
+                    await UploadVersioned(cloudService, zipFileStream, adapterId, entryAssembly, version);
+                }
 
-                if (!isAzureStorage) (cloudService as CloudFiles.S3.CloudFilesService)?.Dispose();
 
+                if (provider?.ToLower() != "as") ((CloudFiles.S3.CloudFilesService)cloudService)?.Dispose();
                 Console.WriteLine("Pushing to cloud succeeded.");
                 return true;
             }
@@ -215,7 +185,7 @@ namespace SW.Serverless.Installer.Shared
         }
 
 
-        public bool Cleanup(string tempPath)
+        public static bool Cleanup(string tempPath)
         {
             try
             {
@@ -230,7 +200,7 @@ namespace SW.Serverless.Installer.Shared
             }
         }
 
-        public void OutputDataReceived(object sender, DataReceivedEventArgs args)
+        private static void OutputDataReceived(object sender, DataReceivedEventArgs args)
         {
             Console.WriteLine(args.Data);
         }

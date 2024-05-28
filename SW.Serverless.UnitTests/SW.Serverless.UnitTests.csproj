@@ -21,6 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\SW.Serverless.Installer\SW.Serverless.Installer.csproj" />
         <ProjectReference Include="..\SW.Serverless\SW.Serverless.csproj" />
     </ItemGroup>
 
