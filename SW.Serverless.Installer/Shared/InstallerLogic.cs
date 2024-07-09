@@ -5,11 +5,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using SW.CloudFiles.OC;
+
 
 namespace SW.Serverless.Installer.Shared
 {
@@ -169,23 +172,50 @@ namespace SW.Serverless.Installer.Shared
                 var isAzureStorage = provider?.ToLower() == "as";
                 ICloudFilesService cloudService = null;
 
-                if (isAzureStorage)
+                switch (provider?.ToLower())
                 {
-                    BlobContainerClient blobContainerClient = new BlobServiceClient(
-                        new Uri(cloudFilesOptions.ServiceUrl),
-                        new StorageSharedKeyCredential(cloudFilesOptions.AccessKeyId,
-                            cloudFilesOptions.SecretAccessKey)).GetBlobContainerClient(cloudFilesOptions.BucketName);
+                    case "as":
+                    {
+                        BlobContainerClient blobContainerClient = new BlobServiceClient(
+                                new Uri(cloudFilesOptions.ServiceUrl),
+                                new StorageSharedKeyCredential(cloudFilesOptions.AccessKeyId,
+                                    cloudFilesOptions.SecretAccessKey))
+                            .GetBlobContainerClient(cloudFilesOptions.BucketName);
 
-                    cloudService = blobContainerClient.Exists()
-                        ? new CloudFiles.AS.CloudFilesService(blobContainerClient)
-                        : new CloudFiles.AS.CloudFilesService(
-                            new BlobServiceClient(new Uri(cloudFilesOptions.ServiceUrl),
-                                    new StorageSharedKeyCredential(cloudFilesOptions.AccessKeyId,
-                                        cloudFilesOptions.SecretAccessKey))
-                                .CreateBlobContainer(cloudFilesOptions.BucketName));
+                        cloudService = blobContainerClient.Exists()
+                            ? new CloudFiles.AS.CloudFilesService(blobContainerClient)
+                            : new CloudFiles.AS.CloudFilesService(
+                                new BlobServiceClient(new Uri(cloudFilesOptions.ServiceUrl),
+                                        new StorageSharedKeyCredential(cloudFilesOptions.AccessKeyId,
+                                            cloudFilesOptions.SecretAccessKey))
+                                    .CreateBlobContainer(cloudFilesOptions.BucketName));
+                        break;
+                    }
+                    case "oc":
+                    {
+                        var ocloudFilesOptions = new OracleCloudFilesOptions();
+                        var directory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                        var pemPath = Path.Combine(directory, $"{Guid.NewGuid():N}.pem");
+                        File.WriteAllText(pemPath, ocloudFilesOptions.RSAKey);
+                        var configPAth = Path.Combine(directory, $"{Guid.NewGuid():N}.config");
+                        File.WriteAllText(configPAth, @$"[DEFAULT]
+user={ocloudFilesOptions.UserId}
+fingerprint={ocloudFilesOptions.FingerPrint}
+tenancy={ocloudFilesOptions.TenantId}
+region={ocloudFilesOptions.Region}
+key_file={pemPath}");
+                        ocloudFilesOptions.ConfigPath = configPAth;
+                        cloudService = new CloudFilesService(ocloudFilesOptions, null);
+
+                        break;
+                    }
+                    default:
+                    {
+                        cloudService = new CloudFiles.S3.CloudFilesService(cloudFilesOptions);
+                        break;
+                    }
                 }
-                else
-                    cloudService = new CloudFiles.S3.CloudFilesService(cloudFilesOptions);
+
 
                 using var zipFileStream = File.OpenRead(zipFielPath);
 
