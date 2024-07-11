@@ -154,7 +154,7 @@ namespace SW.Serverless.Desktop
             var projectFileName = System.IO.Path.GetFileName(projectPath);
             var entryAssembly = $"{projectFileName.Remove(projectFileName.LastIndexOf('.'))}.dll";
 
-            if (await installer.PushToCloudAsync(zipFileName, adapterId, entryAssembly, "",
+            if (await installer.PushToCloud(zipFileName, adapterId, entryAssembly, "",
                     chosenConnection.AccessKeyId,
                     chosenConnection.SecretAccessKey, chosenConnection.ServiceUrl, chosenConnection.BucketName,null))
             {
