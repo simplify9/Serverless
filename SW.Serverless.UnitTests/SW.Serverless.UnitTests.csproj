@@ -14,13 +14,14 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="SimplyWorks.CloudFiles.AS" Version="5.0.17" />
-        <PackageReference Include="SimplyWorks.CloudFiles.AS.Extensions" Version="5.0.17" />
+        <PackageReference Include="SimplyWorks.CloudFiles.AS" Version="5.0.29" />
+        <PackageReference Include="SimplyWorks.CloudFiles.AS.Extensions" Version="5.0.29" />
         <PackageReference Include="SimplyWorks.CloudFiles.Extensions" Version="5.0.2" />
 
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\SW.Serverless.Installer\SW.Serverless.Installer.csproj" />
         <ProjectReference Include="..\SW.Serverless\SW.Serverless.csproj" />
     </ItemGroup>
 

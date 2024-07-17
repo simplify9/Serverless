@@ -14,21 +14,23 @@ namespace SW.Serverless.Installer
 {
     class Program
     {
-        static void Main(string[] args)
+        private static async Task Main(string[] args)
         {
-            CommandLine.Parser.Default.ParseArguments<Options>(args)
-              .WithParsed(RunOptions)
-              .WithNotParsed(HandleParseError);
+            var parser = Parser.Default.ParseArguments<Options>(args);
+            await parser
+                .WithParsedAsync(RunOptions)
+                .Result
+                .WithNotParsedAsync(HandleParseError);
         }
 
-        static void HandleParseError(IEnumerable<Error> errs)
+        private static Task HandleParseError(IEnumerable<Error> arg)
         {
-            //Console.ReadKey();
+            return Task.CompletedTask;
         }
 
-        static void RunOptions(Options opts)
-        {
 
+        static async Task RunOptions(Options opts)
+        {
             var installer = new InstallerLogic();
             try
             {
@@ -36,18 +38,18 @@ namespace SW.Serverless.Installer
 
                 var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
 
-                if (!installer.BuildPublish(opts.ProjectPath, tempPath)) return;
+                if (!InstallerLogic.BuildPublish(opts.ProjectPath, tempPath)) return;
 
                 var zipFileName = Path.Combine(tempPath, $"{opts.AdapterId}");
 
-                if (!installer.Compress(tempPath, zipFileName)) return;
+                if (!InstallerLogic.Compress(tempPath, zipFileName)) return;
 
                 var projectFileName = Path.GetFileName(opts.ProjectPath);
-                var entryAssembly = $"{projectFileName.Remove(projectFileName.LastIndexOf('.'))}.dll";
+                var entryAssembly = $"{projectFileName!.Remove(projectFileName.LastIndexOf('.'))}.dll";
 
-                if (!installer.PushToCloud(zipFileName, opts.AdapterId, entryAssembly,opts.Provider,  opts.AccessKeyId, opts.SecretAccessKey, opts.ServiceUrl, opts.BucketName)) return;
+                if (!await InstallerLogic.PushToCloud(zipFileName,entryAssembly, opts)) return;
 
-                if (!installer.Cleanup(tempPath)) return;
+                if (!InstallerLogic.Cleanup(tempPath)) return;
 
                 Environment.ExitCode = 0;
             }
@@ -55,7 +57,6 @@ namespace SW.Serverless.Installer
             {
                 Console.WriteLine(ex.ToString());
             }
-
         }
     }
 }
