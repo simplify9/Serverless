@@ -5,10 +5,12 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Azure.Storage;
 using Azure.Storage.Blobs;
-using SW.CloudFiles.AS;
+using SW.CloudFiles.OC;
+using CloudFilesService = SW.CloudFiles.AS.CloudFilesService;
 
 namespace SW.Serverless.Installer.Shared
 {
@@ -69,7 +71,7 @@ namespace SW.Serverless.Installer.Shared
             }
         }
 
-        private static async Task<CloudFilesService> PushToAzureStorageCloud(CloudFilesOptions cloudFilesOptions)
+        private static async Task<CloudFilesService> GetAzureStorageConfig(CloudFilesOptions cloudFilesOptions)
         {
             var blobContainerClient = new BlobServiceClient(
                 new Uri(cloudFilesOptions.ServiceUrl),
@@ -85,10 +87,30 @@ namespace SW.Serverless.Installer.Shared
                         .CreateBlobContainerAsync(cloudFilesOptions.BucketName));
         }
 
-        private static Task<CloudFiles.S3.CloudFilesService> PushToS3Cloud(CloudFilesOptions cloudFilesOptions)
+
+        private static Task<CloudFiles.S3.CloudFilesService> GetS3Config(CloudFilesOptions cloudFilesOptions)
         {
             return Task.FromResult(new CloudFiles.S3.CloudFilesService(cloudFilesOptions));
         }
+
+        private static Task<CloudFiles.OC.CloudFilesService> GetOracleCloudConfigConfig(
+            Options options)
+        {
+            var config = new OracleCloudFilesOptions();
+            var directory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            var pemPath = Path.Combine(directory, $"{Guid.NewGuid():N}.pem");
+            File.WriteAllText(pemPath, options.RSAKey);
+            var configPAth = Path.Combine(directory, $"{Guid.NewGuid():N}.config");
+            File.WriteAllText(configPAth, @$"[DEFAULT]
+user={options.UserId}
+fingerprint={options.FingerPrint}
+tenancy={options.TenantId}
+region={options.Region}
+key_file={pemPath}");
+            config.ConfigPath = configPAth;
+            return Task.FromResult(new CloudFiles.OC.CloudFilesService(config, null));
+        }
+
 
         private static async Task UploadVersioned(ICloudFilesService cloudService, Stream zipFileStream,
             string adapterId,
@@ -133,47 +155,43 @@ namespace SW.Serverless.Installer.Shared
 
         public static async Task<bool> PushToCloud(
             string zipFilePath,
-            string adapterId,
             string entryAssembly,
-            string provider,
-            string accessKeyId,
-            string secretAccessKey,
-            string serviceUrl,
-            string bucketName,
-            string version)
+            Options options)
         {
             try
             {
                 Console.WriteLine("Starting...");
                 var cloudFilesOptions = new CloudFilesOptions
                 {
-                    AccessKeyId = accessKeyId,
-                    SecretAccessKey = secretAccessKey,
-                    ServiceUrl = serviceUrl,
-                    BucketName = bucketName
+                    AccessKeyId = options.AccessKeyId,
+                    SecretAccessKey = options.SecretAccessKey,
+                    ServiceUrl = options.ServiceUrl,
+                    BucketName = options.BucketName
                 };
-                ICloudFilesService cloudService = provider?.ToLower() switch
+                ICloudFilesService cloudService = options.Provider?.ToLower() switch
                 {
-                    "as" => await PushToAzureStorageCloud(cloudFilesOptions),
-                    "s3" => await PushToS3Cloud(cloudFilesOptions),
-                    _ => await PushToS3Cloud(cloudFilesOptions),
+                    "as" => await GetAzureStorageConfig(cloudFilesOptions),
+                    "s3" => await GetS3Config(cloudFilesOptions),
+                    "oc" => await GetOracleCloudConfigConfig(options),
+                    _ => await GetS3Config(cloudFilesOptions),
                 };
                 Console.WriteLine("Reading file...");
 
                 await using var zipFileStream = File.OpenRead(zipFilePath);
                 Console.WriteLine("Pushing to cloud...");
 
-                if (string.IsNullOrWhiteSpace(version))
+                if (string.IsNullOrWhiteSpace(options.Version))
                 {
-                    await UploadLegacy(cloudService, zipFileStream, adapterId, entryAssembly);
+                    await UploadLegacy(cloudService, zipFileStream, options.AdapterId, entryAssembly);
                 }
                 else
                 {
-                    await UploadVersioned(cloudService, zipFileStream, adapterId, entryAssembly, version);
+                    await UploadVersioned(cloudService, zipFileStream, options.AdapterId, entryAssembly,
+                        options.Version);
                 }
 
 
-                if (provider?.ToLower() != "as") ((CloudFiles.S3.CloudFilesService)cloudService)?.Dispose();
+                if (options.Provider?.ToLower() != "as") ((CloudFiles.S3.CloudFilesService)cloudService)?.Dispose();
                 Console.WriteLine("Pushing to cloud succeeded.");
                 return true;
             }
