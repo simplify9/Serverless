@@ -22,4 +22,3 @@ Once you have your program ready for installation it's all smooth sailing from t
 
 ## Getting support 👷
 If you encounter any bugs, don't hesitate to submit an [issue](https://github.com/simplify9/Serverless/issues). We'll get back to you promptly!
-
