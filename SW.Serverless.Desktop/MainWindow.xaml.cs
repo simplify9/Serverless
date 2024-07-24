@@ -154,9 +154,14 @@ namespace SW.Serverless.Desktop
             var projectFileName = System.IO.Path.GetFileName(projectPath);
             var entryAssembly = $"{projectFileName.Remove(projectFileName.LastIndexOf('.'))}.dll";
 
-            if (await installer.PushToCloudAsync(zipFileName, adapterId, entryAssembly, "",
-                    chosenConnection.AccessKeyId,
-                    chosenConnection.SecretAccessKey, chosenConnection.ServiceUrl, chosenConnection.BucketName,null))
+           var cloudOptions = new Installer.Options();
+            
+            cloudOptions.AccessKeyId = chosenConnection.AccessKeyId;
+            cloudOptions.BucketName = chosenConnection.BucketName;
+            cloudOptions.SecretAccessKey = chosenConnection.SecretAccessKey;
+            cloudOptions.ServiceUrl = chosenConnection.ServiceUrl;
+            
+            if (await installer.PushToCloud(zipFileName,entryAssembly, cloudOptions))
             {
                 errors.Text = "Install successful. You can install another adapter.";
             }
