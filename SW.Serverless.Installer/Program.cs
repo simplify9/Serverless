@@ -47,8 +47,7 @@ namespace SW.Serverless.Installer
                 var projectFileName = Path.GetFileName(opts.ProjectPath);
                 var entryAssembly = $"{projectFileName!.Remove(projectFileName.LastIndexOf('.'))}.dll";
 
-                if (!await installer.PushToCloud(zipFileName, opts.AdapterId, entryAssembly, opts.Provider,
-                        opts.AccessKeyId, opts.SecretAccessKey, opts.ServiceUrl, opts.BucketName, opts.Version)) return;
+                if (!await installer.PushToCloud(zipFileName,entryAssembly, opts)) return;
 
                 if (!installer.Cleanup(tempPath)) return;
 

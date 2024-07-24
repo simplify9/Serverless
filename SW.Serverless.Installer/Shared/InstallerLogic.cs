@@ -87,7 +87,6 @@ namespace SW.Serverless.Installer.Shared
                         .CreateBlobContainerAsync(cloudFilesOptions.BucketName));
         }
 
-
         private static Task<CloudFiles.S3.CloudFilesService> GetS3Config(CloudFilesOptions cloudFilesOptions)
         {
             return Task.FromResult(new CloudFiles.S3.CloudFilesService(cloudFilesOptions));
@@ -110,7 +109,6 @@ key_file={pemPath}");
             config.ConfigPath = configPAth;
             return Task.FromResult(new CloudFiles.OC.CloudFilesService(config, null));
         }
-
 
         private static async Task UploadVersioned(ICloudFilesService cloudService, Stream zipFileStream,
             string adapterId,
@@ -151,7 +149,6 @@ key_file={pemPath}");
                 }
             });
         }
-
 
         public async Task<bool> PushToCloud(
             string zipFilePath,
@@ -201,7 +198,6 @@ key_file={pemPath}");
                 return false;
             }
         }
-
 
         public bool Cleanup(string tempPath)
         {
