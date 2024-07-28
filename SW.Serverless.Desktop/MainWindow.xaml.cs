@@ -1,27 +1,13 @@
-﻿using Amazon.S3.Model;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using Newtonsoft.Json;
-using SW.CloudFiles;
-using SW.PrimitiveTypes;
 using SW.Serverless.Installer.Shared;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace SW.Serverless.Desktop
 {
@@ -153,9 +139,8 @@ namespace SW.Serverless.Desktop
 
             var projectFileName = System.IO.Path.GetFileName(projectPath);
             var entryAssembly = $"{projectFileName.Remove(projectFileName.LastIndexOf('.'))}.dll";
+            var cloudOptions = new Installer.Options();
 
-           var cloudOptions = new Installer.Options();
-            
             cloudOptions.AccessKeyId = chosenConnection.AccessKeyId;
             cloudOptions.BucketName = chosenConnection.BucketName;
             cloudOptions.SecretAccessKey = chosenConnection.SecretAccessKey;
