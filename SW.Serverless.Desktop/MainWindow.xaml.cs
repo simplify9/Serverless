@@ -139,7 +139,6 @@ namespace SW.Serverless.Desktop
 
             var projectFileName = System.IO.Path.GetFileName(projectPath);
             var entryAssembly = $"{projectFileName.Remove(projectFileName.LastIndexOf('.'))}.dll";
-
             var cloudOptions = new Installer.Options();
 
             cloudOptions.AccessKeyId = chosenConnection.AccessKeyId;
