@@ -38,18 +38,18 @@ namespace SW.Serverless.Installer
 
                 var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
 
-                if (!InstallerLogic.BuildPublish(opts.ProjectPath, tempPath)) return;
+                if (!installer.BuildPublish(opts.ProjectPath, tempPath)) return;
 
                 var zipFileName = Path.Combine(tempPath, $"{opts.AdapterId}");
 
-                if (!InstallerLogic.Compress(tempPath, zipFileName)) return;
+                if (!installer.Compress(tempPath, zipFileName)) return;
 
                 var projectFileName = Path.GetFileName(opts.ProjectPath);
                 var entryAssembly = $"{projectFileName!.Remove(projectFileName.LastIndexOf('.'))}.dll";
 
-                if (!await InstallerLogic.PushToCloud(zipFileName,entryAssembly, opts)) return;
+                if (!await installer.PushToCloud(zipFileName,entryAssembly, opts)) return;
 
-                if (!InstallerLogic.Cleanup(tempPath)) return;
+                if (!installer.Cleanup(tempPath)) return;
 
                 Environment.ExitCode = 0;
             }

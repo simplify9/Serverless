@@ -16,7 +16,7 @@ namespace SW.Serverless.Installer.Shared
 {
     public class InstallerLogic
     {
-        public static bool BuildPublish(string projectPath, string outputPath)
+        public bool BuildPublish(string projectPath, string outputPath)
         {
             Console.WriteLine("Building and publishing...");
 
@@ -45,7 +45,7 @@ namespace SW.Serverless.Installer.Shared
             return result;
         }
 
-        public static bool Compress(string path, string zipFileName)
+        public bool Compress(string path, string zipFileName)
         {
             try
             {
@@ -87,7 +87,6 @@ namespace SW.Serverless.Installer.Shared
                         .CreateBlobContainerAsync(cloudFilesOptions.BucketName));
         }
 
-
         private static Task<CloudFiles.S3.CloudFilesService> GetS3Config(CloudFilesOptions cloudFilesOptions)
         {
             return Task.FromResult(new CloudFiles.S3.CloudFilesService(cloudFilesOptions));
@@ -110,7 +109,6 @@ key_file={pemPath}");
             config.ConfigPath = configPAth;
             return Task.FromResult(new CloudFiles.OC.CloudFilesService(config, null));
         }
-
 
         private static async Task UploadVersioned(ICloudFilesService cloudService, Stream zipFileStream,
             string adapterId,
@@ -152,8 +150,7 @@ key_file={pemPath}");
             });
         }
 
-
-        public static async Task<bool> PushToCloud(
+        public async Task<bool> PushToCloud(
             string zipFilePath,
             string entryAssembly,
             Options options)
@@ -202,8 +199,7 @@ key_file={pemPath}");
             }
         }
 
-
-        public static bool Cleanup(string tempPath)
+        public bool Cleanup(string tempPath)
         {
             try
             {
