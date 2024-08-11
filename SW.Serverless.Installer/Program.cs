@@ -1,14 +1,13 @@
 ﻿using CommandLine;
-using SW.CloudFiles;
-using SW.PrimitiveTypes;
 using SW.Serverless.Installer.Shared;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
-using System.Reflection;
+using System.Net;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using SW.CloudFiles.OC;
+using SW.PrimitiveTypes;
 
 namespace SW.Serverless.Installer
 {
@@ -16,7 +15,7 @@ namespace SW.Serverless.Installer
     {
         private static async Task Main(string[] args)
         {
-            var parser = Parser.Default.ParseArguments<Options>(args);
+            var parser = Parser.Default.ParseArguments<CliOptions>(args);
             await parser
                 .WithParsedAsync(RunOptions)
                 .Result
@@ -29,9 +28,48 @@ namespace SW.Serverless.Installer
         }
 
 
-        static async Task RunOptions(Options opts)
+        private static async Task<ServerlessUploadOptions> GetServerlessUploadOptions(CliOptions options)
         {
-            var installer = new InstallerLogic();
+            if (string.IsNullOrWhiteSpace(options.CloudFilesConfigPath))
+                return new ServerlessUploadOptions
+                {
+                    AccessKeyId = options.AccessKeyId,
+                    SecretAccessKey = options.SecretAccessKey,
+                    ServiceUrl = options.ServiceUrl,
+                    BucketName = options.BucketName,
+                    Version = options.Version,
+                    Provider = options.Provider,
+                    AdapterId = options.AdapterId,
+                    
+                };
+
+
+            var rawFile = await File.ReadAllTextAsync(options.CloudFilesConfigPath);
+
+            if (string.IsNullOrWhiteSpace(rawFile))
+                throw new SWException($"Invalid cloud Files config path, {options.CloudFilesConfigPath}");
+
+
+            var data = JsonConvert.DeserializeObject<OracleCloudFilesOptions>(rawFile);
+            return new ServerlessUploadOptions
+            {
+                Provider = options.Provider,
+                AccessKeyId = data.AccessKeyId,
+                SecretAccessKey = data.SecretAccessKey,
+                ServiceUrl = data.ServiceUrl,
+                BucketName = data.BucketName,
+                Region = data.Region,
+                FingerPrint = data.FingerPrint,
+                TenantId = data.TenantId,
+                UserId = data.UserId,
+                RSAKey = data.Region,
+                Version = options.Version,
+                AdapterId = options.AdapterId,
+            };
+        }
+
+        static async Task RunOptions(CliOptions opts)
+        {
             try
             {
                 Environment.ExitCode = 1;
@@ -47,7 +85,11 @@ namespace SW.Serverless.Installer
                 var projectFileName = Path.GetFileName(opts.ProjectPath);
                 var entryAssembly = $"{projectFileName!.Remove(projectFileName.LastIndexOf('.'))}.dll";
 
-                if (!await InstallerLogic.PushToCloud(zipFileName,entryAssembly, opts)) return;
+
+                if (!await InstallerLogic.PushToCloud(zipFileName, entryAssembly,
+                        await GetServerlessUploadOptions(opts)))
+                    return;
+
 
                 if (!InstallerLogic.Cleanup(tempPath)) return;
 
