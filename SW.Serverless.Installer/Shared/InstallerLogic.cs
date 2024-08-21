@@ -16,7 +16,7 @@ namespace SW.Serverless.Installer.Shared
 {
     public class InstallerLogic
     {
-        public static bool BuildPublish(string projectPath, string outputPath)
+        public bool BuildPublish(string projectPath, string outputPath)
         {
             Console.WriteLine("Building and publishing...");
 
@@ -45,7 +45,7 @@ namespace SW.Serverless.Installer.Shared
             return result;
         }
 
-        public static bool Compress(string path, string zipFileName)
+        public bool Compress(string path, string zipFileName)
         {
             try
             {
@@ -152,8 +152,7 @@ key_file={pemPath}");
             });
         }
 
-
-        public static async Task<bool> PushToCloud(
+        public async Task<bool> PushToCloud(
             string zipFilePath,
             string entryAssembly,
             Options options)
@@ -202,8 +201,7 @@ key_file={pemPath}");
             }
         }
 
-
-        public static bool Cleanup(string tempPath)
+        public bool Cleanup(string tempPath)
         {
             try
             {
