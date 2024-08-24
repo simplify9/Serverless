@@ -3,7 +3,6 @@ using SW.Serverless.Installer.Shared;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SW.CloudFiles.OC;
@@ -86,7 +85,7 @@ namespace SW.Serverless.Installer
                 var projectFileName = Path.GetFileName(opts.ProjectPath);
                 var entryAssembly = $"{projectFileName!.Remove(projectFileName.LastIndexOf('.'))}.dll";
 
-                if (!await installer.PushToCloud(zipFileName,entryAssembly, opts)) return;
+                if (!await installer.PushToCloud(zipFileName,entryAssembly, await GetServerlessUploadOptions(opts))) return;
 
                 if (!installer.Cleanup(tempPath)) return;
 
