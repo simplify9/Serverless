@@ -5,7 +5,7 @@ using System.Text;
 
 namespace SW.Serverless.Installer
 {
-    public class Options
+    public class CliOptions
     {
         //[Option('v', "verbose", Required = false, HelpText = "Set output to verbose messages.")]
         //public bool Verbose { get; set; }
@@ -25,26 +25,9 @@ namespace SW.Serverless.Installer
         [Option('u', "url", HelpText = "Service Url for storage.")]
         public string ServiceUrl { get; set; }
 
-        //oracle cloud
 
-        [Option('k', "rsakey", HelpText = "Oracle cloud rsa key.")]
-        public string RSAKey { get; set; }
-
-        [Option('r', "userid", HelpText = "Oracle cloud user id.")]
-        public string UserId { get; set; }
-
-        [Option('f', "fingerprint", HelpText = "Oracle cloud finger print.")]
-        public string FingerPrint { get; set; }
-
-        [Option('t', "tenantjd", HelpText = "Oracle cloud tenant id.")]
-        public string TenantId { get; set; }
-
-        [Option('r', "region", HelpText = "Oracle cloud region.")]
-        public string Region { get; set; }
-
-        [Option('c', "configpath", HelpText = "Oracle cloud config path.")]
-        public string ConfigPath { get; set; }
-
+        [Option('c', "cloudfilesconfigpath", HelpText = "Json cloud files config path. (required for Oracle Cloud)")]
+        public string CloudFilesConfigPath { get; set; }
 
         [Option('v', "version",
             HelpText =
@@ -55,5 +38,35 @@ namespace SW.Serverless.Installer
         public string ProjectPath { get; set; }
 
         [Value(1, HelpText = "Adapter Id")] public string AdapterId { get; set; }
+    }
+
+    public class ServerlessUploadOptions
+    {
+        public string Provider { get; set; }
+
+        public string AccessKeyId { get; set; }
+
+        public string SecretAccessKey { get; set; }
+
+        public string BucketName { get; set; }
+
+        public string ServiceUrl { get; set; }
+
+
+        public string RSAKey { get; set; }
+
+        public string UserId { get; set; }
+
+        public string FingerPrint { get; set; }
+
+        public string TenantId { get; set; }
+
+        public string Region { get; set; }
+
+
+        public string Version { get; set; }
+
+
+        public string AdapterId { get; set; }
     }
 }

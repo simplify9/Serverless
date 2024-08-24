@@ -139,14 +139,15 @@ namespace SW.Serverless.Desktop
 
             var projectFileName = System.IO.Path.GetFileName(projectPath);
             var entryAssembly = $"{projectFileName.Remove(projectFileName.LastIndexOf('.'))}.dll";
-
+            var cloudOptions = new Installer.Options();
+            
             if (await installer.PushToCloud(zipFileName, entryAssembly, new Installer.Options
-                {
-                    AccessKeyId = chosenConnection.AccessKeyId,
-                    SecretAccessKey = chosenConnection.SecretAccessKey,
-                    ServiceUrl = chosenConnection.ServiceUrl,
-                    BucketName = chosenConnection.BucketName
-                }))
+            {
+                AccessKeyId = chosenConnection.AccessKeyId,
+                SecretAccessKey = chosenConnection.SecretAccessKey,
+                ServiceUrl = chosenConnection.ServiceUrl,
+                BucketName = chosenConnection.BucketName
+            }))
             {
                 errors.Text = "Install successful. You can install another adapter.";
             }
@@ -154,7 +155,6 @@ namespace SW.Serverless.Desktop
             {
                 errors.Text = "Install failed, check configuration.";
             }
-
 
             if (!installer.Cleanup(tempPath))
             {
