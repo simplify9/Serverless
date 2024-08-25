@@ -93,10 +93,10 @@ namespace SW.Serverless.Installer.Shared
         }
 
         private static Task<CloudFiles.OC.CloudFilesService> GetOracleCloudConfigConfig(
-            Options options)
+            OracleCloudFilesOptions options)
         {
             var config = new OracleCloudFilesOptions();
-            var directory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            var directory = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)!;
             var pemPath = Path.Combine(directory, $"{Guid.NewGuid():N}.pem");
             File.WriteAllText(pemPath, options.RSAKey);
             var configPAth = Path.Combine(directory, $"{Guid.NewGuid():N}.config");
@@ -153,23 +153,28 @@ key_file={pemPath}");
         public async Task<bool> PushToCloud(
             string zipFilePath,
             string entryAssembly,
-            Options options)
+            ServerlessUploadOptions options)
         {
             try
             {
                 Console.WriteLine("Starting...");
-                var cloudFilesOptions = new CloudFilesOptions
+                var cloudFilesOptions = new OracleCloudFilesOptions
                 {
                     AccessKeyId = options.AccessKeyId,
                     SecretAccessKey = options.SecretAccessKey,
                     ServiceUrl = options.ServiceUrl,
-                    BucketName = options.BucketName
+                    BucketName = options.BucketName,
+                    Region = options.Region,
+                    FingerPrint = options.FingerPrint,
+                    TenantId = options.TenantId,
+                    UserId = options.UserId,
+                    RSAKey = options.Region,
                 };
                 ICloudFilesService cloudService = options.Provider?.ToLower() switch
                 {
                     "as" => await GetAzureStorageConfig(cloudFilesOptions),
                     "s3" => await GetS3Config(cloudFilesOptions),
-                    "oc" => await GetOracleCloudConfigConfig(options),
+                    "oc" => await GetOracleCloudConfigConfig(cloudFilesOptions),
                     _ => await GetS3Config(cloudFilesOptions),
                 };
                 Console.WriteLine("Reading file...");
