@@ -2,9 +2,15 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using SW.CloudFiles.OC;
 
 namespace SW.Serverless.Installer
 {
+    public class FileData
+    {
+        public ServerlessUploadOptions CloudFiles { get; set; }
+    }
+
     public class CliOptions
     {
         //[Option('v', "verbose", Required = false, HelpText = "Set output to verbose messages.")]

@@ -48,10 +48,11 @@ namespace SW.Serverless.Installer
                 throw new SWException($"Invalid cloud Files config path, {options.CloudFilesConfigPath}");
 
 
-            var data = JsonConvert.DeserializeObject<OracleCloudFilesOptions>(rawFile);
+            var fileData = JsonConvert.DeserializeObject<FileData>(rawFile);
+            var data = fileData.CloudFiles;
             return new ServerlessUploadOptions
             {
-                Provider = options.Provider,
+                Provider = data.Provider ?? options.Provider,
                 AccessKeyId = data.AccessKeyId,
                 SecretAccessKey = data.SecretAccessKey,
                 ServiceUrl = data.ServiceUrl,
@@ -63,6 +64,7 @@ namespace SW.Serverless.Installer
                 RSAKey = data.Region,
                 Version = options.Version,
                 AdapterId = options.AdapterId,
+                
             };
         }
 
@@ -85,7 +87,8 @@ namespace SW.Serverless.Installer
                 var projectFileName = Path.GetFileName(opts.ProjectPath);
                 var entryAssembly = $"{projectFileName!.Remove(projectFileName.LastIndexOf('.'))}.dll";
 
-                if (!await installer.PushToCloud(zipFileName,entryAssembly, await GetServerlessUploadOptions(opts))) return;
+                if (!await installer.PushToCloud(zipFileName, entryAssembly, await GetServerlessUploadOptions(opts)))
+                    return;
 
                 if (!installer.Cleanup(tempPath)) return;
 
