@@ -74,5 +74,6 @@ namespace SW.Serverless.Installer
 
 
         public string AdapterId { get; set; }
+        public string NamespaceName { get; set; }
     }
 }

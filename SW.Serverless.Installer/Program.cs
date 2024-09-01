@@ -52,7 +52,9 @@ namespace SW.Serverless.Installer
             var data = fileData.CloudFiles;
             return new ServerlessUploadOptions
             {
-                Provider = data.Provider ?? options.Provider,
+                Version = options.Version,
+                AdapterId = options.AdapterId,
+                Provider = options.Provider ?? data.Provider,
                 AccessKeyId = data.AccessKeyId,
                 SecretAccessKey = data.SecretAccessKey,
                 ServiceUrl = data.ServiceUrl,
@@ -61,10 +63,8 @@ namespace SW.Serverless.Installer
                 FingerPrint = data.FingerPrint,
                 TenantId = data.TenantId,
                 UserId = data.UserId,
-                RSAKey = data.Region,
-                Version = options.Version,
-                AdapterId = options.AdapterId,
-                
+                RSAKey = data.RSAKey,
+                NamespaceName = data.NamespaceName
             };
         }
 

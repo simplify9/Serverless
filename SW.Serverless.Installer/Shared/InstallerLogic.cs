@@ -95,7 +95,6 @@ namespace SW.Serverless.Installer.Shared
         private static Task<CloudFiles.OC.CloudFilesService> GetOracleCloudConfigConfig(
             OracleCloudFilesOptions options)
         {
-            var config = new OracleCloudFilesOptions();
             var directory = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)!;
             var pemPath = Path.Combine(directory, $"{Guid.NewGuid():N}.pem");
             File.WriteAllText(pemPath, options.RSAKey);
@@ -106,8 +105,8 @@ fingerprint={options.FingerPrint}
 tenancy={options.TenantId}
 region={options.Region}
 key_file={pemPath}");
-            config.ConfigPath = configPAth;
-            return Task.FromResult(new CloudFiles.OC.CloudFilesService(config, null));
+            options.ConfigPath = configPAth;
+            return Task.FromResult(new CloudFiles.OC.CloudFilesService(options, null));
         }
 
         private static async Task UploadVersioned(ICloudFilesService cloudService, Stream zipFileStream,
@@ -168,7 +167,8 @@ key_file={pemPath}");
                     FingerPrint = options.FingerPrint,
                     TenantId = options.TenantId,
                     UserId = options.UserId,
-                    RSAKey = options.Region,
+                    RSAKey = options.RSAKey,
+                    NamespaceName = options.NamespaceName,
                 };
                 ICloudFilesService cloudService = options.Provider?.ToLower() switch
                 {
@@ -192,8 +192,6 @@ key_file={pemPath}");
                         options.Version);
                 }
 
-
-                if (options.Provider?.ToLower() != "as") ((CloudFiles.S3.CloudFilesService)cloudService)?.Dispose();
                 Console.WriteLine("Pushing to cloud succeeded.");
                 return true;
             }
