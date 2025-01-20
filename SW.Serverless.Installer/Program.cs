@@ -1,35 +1,77 @@
 ﻿using CommandLine;
-using SW.CloudFiles;
-using SW.PrimitiveTypes;
 using SW.Serverless.Installer.Shared;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
-using System.Reflection;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using SW.CloudFiles.OC;
+using SW.PrimitiveTypes;
 
 namespace SW.Serverless.Installer
 {
     class Program
     {
-        static void Main(string[] args)
+        private static async Task Main(string[] args)
         {
-            CommandLine.Parser.Default.ParseArguments<Options>(args)
-              .WithParsed(RunOptions)
-              .WithNotParsed(HandleParseError);
+            var parser = Parser.Default.ParseArguments<CliOptions>(args);
+            await parser
+                .WithParsedAsync(RunOptions)
+                .Result
+                .WithNotParsedAsync(HandleParseError);
         }
 
-        static void HandleParseError(IEnumerable<Error> errs)
+        private static Task HandleParseError(IEnumerable<Error> arg)
         {
-            //Console.ReadKey();
+            return Task.CompletedTask;
         }
 
-        static void RunOptions(Options opts)
-        {
 
+        private static async Task<ServerlessUploadOptions> GetServerlessUploadOptions(CliOptions options)
+        {
+            if (string.IsNullOrWhiteSpace(options.CloudFilesConfigPath))
+                return new ServerlessUploadOptions
+                {
+                    AccessKeyId = options.AccessKeyId,
+                    SecretAccessKey = options.SecretAccessKey,
+                    ServiceUrl = options.ServiceUrl,
+                    BucketName = options.BucketName,
+                    Version = options.Version,
+                    Provider = options.Provider,
+                    AdapterId = options.AdapterId,
+                };
+
+
+            var rawFile = await File.ReadAllTextAsync(options.CloudFilesConfigPath);
+
+            if (string.IsNullOrWhiteSpace(rawFile))
+                throw new SWException($"Invalid cloud Files config path, {options.CloudFilesConfigPath}");
+
+
+            var fileData = JsonConvert.DeserializeObject<FileData>(rawFile);
+            var data = fileData.CloudFiles;
+            return new ServerlessUploadOptions
+            {
+                Version = options.Version,
+                AdapterId = options.AdapterId,
+                Provider = options.Provider ?? data.Provider,
+                AccessKeyId = data.AccessKeyId,
+                SecretAccessKey = data.SecretAccessKey,
+                ServiceUrl = data.ServiceUrl,
+                BucketName = data.BucketName,
+                Region = data.Region,
+                FingerPrint = data.FingerPrint,
+                TenantId = data.TenantId,
+                UserId = data.UserId,
+                RSAKey = data.RSAKey,
+                NamespaceName = data.NamespaceName
+            };
+        }
+
+        static async Task RunOptions(CliOptions opts)
+        {
             var installer = new InstallerLogic();
+
             try
             {
                 Environment.ExitCode = 1;
@@ -43,9 +85,10 @@ namespace SW.Serverless.Installer
                 if (!installer.Compress(tempPath, zipFileName)) return;
 
                 var projectFileName = Path.GetFileName(opts.ProjectPath);
-                var entryAssembly = $"{projectFileName.Remove(projectFileName.LastIndexOf('.'))}.dll";
+                var entryAssembly = $"{projectFileName!.Remove(projectFileName.LastIndexOf('.'))}.dll";
 
-                if (!installer.PushToCloud(zipFileName, opts.AdapterId, entryAssembly,opts.Provider,  opts.AccessKeyId, opts.SecretAccessKey, opts.ServiceUrl, opts.BucketName)) return;
+                if (!await installer.PushToCloud(zipFileName, entryAssembly, await GetServerlessUploadOptions(opts)))
+                    return;
 
                 if (!installer.Cleanup(tempPath)) return;
 
@@ -55,7 +98,6 @@ namespace SW.Serverless.Installer
             {
                 Console.WriteLine(ex.ToString());
             }
-
         }
     }
 }
