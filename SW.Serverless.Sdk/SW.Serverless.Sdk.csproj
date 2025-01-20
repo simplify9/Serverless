@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6</TargetFramework>
+        <TargetFramework>net8</TargetFramework>
         <PackageId>SimplyWorks.Serverless.Sdk</PackageId>
         <Authors>Simplify9</Authors>
         <Product>SimplyWorks.Serverless.Sdk</Product>
@@ -15,7 +15,7 @@
 
     <ItemGroup>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.2"/>
-        <PackageReference Include="SimplyWorks.PrimitiveTypes" Version="6.0.1"/>
+        <PackageReference Include="SimplyWorks.PrimitiveTypes" Version="8.0.0" />
     </ItemGroup>
     <ItemGroup>
         <None Include="../icon.png">
