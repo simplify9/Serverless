@@ -10,7 +10,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SW.CloudFiles.Extensions;
 using SW.PrimitiveTypes;
 
 namespace SW.Serverless.SampleWeb
@@ -29,7 +28,7 @@ namespace SW.Serverless.SampleWeb
         {
             services.AddControllers();
             services.AddServerless();
-            services.AddCloudFiles();
+            //services.AddCloudFiles();
             //services.AddServerless(config =>
             //{
             //    config.CloudFilesOptions = new CloudFilesOptions

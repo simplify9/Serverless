@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SW.CloudFiles.Extensions;
+using SW.CloudFiles.AS.Extensions;
 
 namespace SW.Serverless.UnitTests
 {
@@ -18,8 +18,8 @@ namespace SW.Serverless.UnitTests
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //services.AddAsCloudFiles();
-            services.AddCloudFiles();
+            services.AddAsCloudFiles();
+            //services.AddCloudFiles();
             services.AddServerless();
         }
 
