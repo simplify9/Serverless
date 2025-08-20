@@ -50,17 +50,45 @@ namespace SW.Serverless.Installer.Shared
             try
             {
                 Console.WriteLine("Compressing files...");
-                var filesToCompress = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
-                {
-                    using var stream = File.OpenWrite(zipFileName);
-                    using var archive = new ZipArchive(stream, ZipArchiveMode.Create);
 
-                    foreach (var file in filesToCompress)
+                var skipExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ".http",
+                    ".pdb",
+                    ".xml"
+                };
+
+                var filesToCompress = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
+
+                using var stream = File.OpenWrite(zipFileName);
+                using var archive = new ZipArchive(stream, ZipArchiveMode.Create);
+
+                foreach (var file in filesToCompress)
+                {
+                    try
                     {
+                        var extension = Path.GetExtension(file);
+                        if (skipExtensions.Contains(extension))
+                        {
+                            Console.WriteLine($"Skipping {file} (excluded extension)");
+                            continue;
+                        }
+
                         var entryName = Path.GetRelativePath(path, file);
-                        archive.CreateEntryFromFile(file, entryName);
+
+                        // Open file with shared read access
+                        using var fileStream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                        var entry = archive.CreateEntry(entryName);
+
+                        using var entryStream = entry.Open();
+                        fileStream.CopyTo(entryStream);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Skipping {file} (error: {ex.Message})");
                     }
                 }
+
                 Console.WriteLine("Compressing files succeeded.");
                 return true;
             }
